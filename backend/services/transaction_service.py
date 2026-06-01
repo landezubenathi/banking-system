@@ -12,9 +12,6 @@ def deposit(account_id, amount):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
-    finally:
-        conn.close()
-
 
 def withdraw(account_id, amount):
     conn = get_connection()
@@ -27,9 +24,6 @@ def withdraw(account_id, amount):
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
-
-    finally:
-        conn.close()
 
 
 def transfer(from_acc, to_acc, amount):
