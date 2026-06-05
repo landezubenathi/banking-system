@@ -1,0 +1,37 @@
+1. Daily Git Workflow (Most Important)
+Step 1: Pull Latest Changes
+git pull
+Retrieves the latest updates from GitHub and helps prevent merge conflicts before starting work.
+Step 2: Check Project Status
+git status
+Displays modified files and new (untracked) files.
+Step 3: Stage Changes
+git add .
+Adds all changes to the staging area. To add a specific file: git add filename.py
+Step 4: Commit Changes
+git commit -m "your message"
+Saves your changes locally with a message. Example: git commit -m "Added login API"
+Step 5: Push to GitHub
+git push
+Uploads your committed changes to the shared repository.
+2. Full Daily Workflow Cycle
+git pull
+git add .
+git commit -m "message"
+git push
+3. Important Rules
+Rule 1: Always run git pull before starting work.
+Rule 2: Use clear commit messages (e.g., "Added application routes" instead of "update").
+Rule 3: Push your work regularly to avoid conflicts and data loss.
+4. Useful Extra Commands
+Clone repository (only once): git clone <repository-link>
+View commit history: git log
+Check file differences: git diff
+5. Handling Mistakes
+Undo last add: git reset
+Undo last commit (keep changes): git reset --soft HEAD~1
+6. Final Tip
+pull → Get latest work
+add → Prepare changes
+commit → Save changes
+push → Share changes
