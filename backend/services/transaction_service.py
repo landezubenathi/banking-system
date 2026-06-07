@@ -50,7 +50,7 @@ def withdraw(accountId, amount):
 
         cursor.execute("EXEC WithdrawMoney ?, ?", (accountId, amount))
         conn.commit()
-        conn.close()
+        #conn.close()
 
         return {"status": "success", "message": "Withdrawal successful"}
 
