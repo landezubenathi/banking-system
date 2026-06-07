@@ -30,10 +30,10 @@ def login_user(data):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT user_id, username
+        SELECT UserId, Username
         FROM Users
-        WHERE username = ? AND password_hash = ?
-    """, (data['username'], data['password_hash']))
+        WHERE Username = ? AND PasswordHash = ?
+    """, (data['Username'], data['PasswordHash']))
 
     user = cursor.fetchone()
     conn.close()
@@ -41,8 +41,8 @@ def login_user(data):
     if user:
         return {
             "status": "success",
-            "user_id": user.user_id,
-            "username": user.username
+            "UserId": user.UserId,
+            "Username": user.Username
         }
 
     return {"status": "error", "message": "Invalid credentials"}
