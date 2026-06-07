@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from routes.auth_routes import auth_bp
 
 from routes.auth_routes import auth_bp
 from routes.account_routes import account_bp

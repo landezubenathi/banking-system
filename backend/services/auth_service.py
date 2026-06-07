@@ -25,24 +25,36 @@ def register_user(data):
         conn.close()
 
 
-def login_user(data):
+def login(username, password):
+
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        SELECT UserId, Username
-        FROM Users
-        WHERE Username = ? AND PasswordHash = ?
-    """, (data['Username'], data['PasswordHash']))
+    cursor.execute(
+    "EXEC UserLogin ?, ?",
+    (username, password)
+)
+
+    if cursor.description is None:
+        return {
+            "status": "error",
+            "message": "No user data returned"
+        }
 
     user = cursor.fetchone()
+
     conn.close()
 
     if user:
         return {
             "status": "success",
-            "UserId": user.UserId,
-            "Username": user.Username
+            "user_id": user.UserId,
+            "customer_id": user.CustomerId,
+            "username": user.Username,
+            "full_name": user.FullName
         }
 
-    return {"status": "error", "message": "Invalid credentials"}
+    return {
+        "status": "error",
+        "message": "Invalid credentials"
+    }
