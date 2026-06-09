@@ -88,13 +88,60 @@ def transfer(from_acc, to_acc, amount):
 
         cursor.execute("EXEC TransferMoney ?, ?, ?", (from_acc, to_acc, amount))
         conn.commit()
-        conn.close()
 
         return {"status": "success", "message": "Transfer successful"}
 
     except Exception as e:
         print("ERROR:", e)
         return {"status": "error", "message": str(e)}
+
+    finally:
+        if conn:
+            conn.close()
+
+def get_transactions(account_id):
+
+    conn = None
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                TransactionId,
+                TransactionType,
+                Amount,
+                TransactionDate,
+                ReferenceAccountId
+            FROM Transactions
+            WHERE AccountId = ?
+            ORDER BY TransactionDate DESC
+        """, (account_id,))
+
+        rows = cursor.fetchall()
+
+        transactions = []
+
+        for row in rows:
+            transactions.append({
+                "transaction_id": row.TransactionId,
+                "type": row.TransactionType,
+                "amount": float(row.Amount),
+                "date": str(row.TransactionDate),
+                "reference_account": row.ReferenceAccountId
+            })
+
+        return {
+            "status": "success",
+            "transactions": transactions
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
     finally:
         if conn:

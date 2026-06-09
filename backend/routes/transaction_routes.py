@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.transaction_service import deposit, withdraw, transfer
+from services.transaction_service import deposit, get_transactions, withdraw, transfer
 
 transaction_bp = Blueprint("transaction_bp", __name__)
 
@@ -21,3 +21,10 @@ def transfer_route():
         data['to_account'],
         data['amount']
     ))
+    
+@transaction_bp.route('/transactions/<int:account_id>', methods=['GET'])
+def get_transactions_route(account_id):
+
+    return jsonify(
+        get_transactions(account_id)
+    )
