@@ -1,10 +1,10 @@
 import axios from "axios";
-import VITE_API_URL from meta.env // Ensure the environment variable is loaded
-import.meta.env.VITE_WEBSOCKET_URL; // Ensure the environment variable is loaded
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const API = axios.create({
-  baseURL: VITE_API_URL,
+  baseURL: API_URL,
 });
 
 export default API;
-
+///
