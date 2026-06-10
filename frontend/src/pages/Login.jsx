@@ -1,4 +1,4 @@
-import { useState } from "react";
+/*import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 
@@ -67,6 +67,17 @@ function Login() {
       </form>
 
       <p>{message}</p>
+    </div>
+  );
+}
+
+export default Login;*/
+
+function Login() {
+  return (
+    <div>
+      <h1>Banking System Login</h1>
+      <p>React is working!</p>
     </div>
   );
 }
