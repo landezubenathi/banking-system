@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
+import "./Dashboard.css";
+
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   
@@ -34,12 +36,7 @@ function Dashboard() {
       console.error(error);
       alert("Failed to create account");
     }
-
-    return (
-        <div>
-            {message && <p>{message}</p>}
-        </div>
-    );
+    
   };
 
   const loadAccount = async () => {
@@ -59,14 +56,13 @@ function Dashboard() {
   };
 
   return (
-    <div>
-      <h1>Dashboard</h1>
-
-      <h3>Welcome {user?.full_name}</h3>
-
-      <p>Username: {user?.username}</p>
-
-      <p>Customer ID: {user?.customer_id}</p>
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h1>Dashboard</h1>
+        <h3>Welcome {user?.full_name}</h3>
+        <p>Username: {user?.username}</p>
+        <p>Customer ID: {user?.customer_id}</p>
+      </div>
 
       <hr />
 
@@ -77,18 +73,24 @@ function Dashboard() {
             (account) => (  
               <div
                 key={account.account_id}
-                style={{
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  padding: "15px",
-                  marginBottom: "10px"
-                }}
+                className="account-card"
               >
               <h3>Account #{account.account_id}</h3>
 
               <p>Balance: R {account.balance}</p>
 
-              <p>Status: {account.status}</p>
+              <p>
+                Status:
+                <span
+                  className={
+                    account.status === "ACTIVE"
+                      ? "active"
+                      : "frozen"
+                  }
+                >
+                  {" "}{account.status}
+                </span>
+              </p>
 
               <button onClick={() => navigate(`/accounts/${account.account_id}`)}>Select Account</button>
               </div>
@@ -96,10 +98,11 @@ function Dashboard() {
           )
         }
 
-      <div style={{ padding: "15px"}}>
+      <div className="button-group">
           <button onClick={handleCreateAccount}>
             Create New Account
           </button>
+          {message && <p>{message}</p>}
       </div>
 
       <hr />
@@ -121,14 +124,14 @@ function Dashboard() {
       <button onClick={() => navigate("/transactions")}>
         Transactions
       </button>
-      <div style={{ marginTop: "10px" }}></div>
-
-      <button onClick={() => navigate("/fraud-alerts")}>
-        Fraud Alerts
-      </button>
+      <div className="button-group">
+        <button onClick={() => navigate("/fraud-alerts")}>
+          Fraud Alerts
+        </button>
+      </div>
 
       <hr />
-      <button onClick={handleLogout}>
+      <button onClick={handleLogout} className="logout-btn">
           Logout
       </button>
       
