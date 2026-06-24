@@ -22,9 +22,9 @@ def get_accounts(customer_id):
     cursor = conn.cursor()
 
     cursor.execute("""
-        SELECT account_id, account_balance, account_status
+        SELECT AccountId, AccountBalance, AccountStatus
         FROM Accounts
-        WHERE customer_id = ?
+        WHERE CustomerId = ?
     """, (customer_id,))
 
     rows = cursor.fetchall()
@@ -32,9 +32,9 @@ def get_accounts(customer_id):
 
     return [
         {
-            "account_id": r.account_id,
-            "balance": r.account_balance,
-            "status": r.account_status
+            "account_id": r.AccountId,
+            "balance": r.AccountBalance,
+            "status": r.AccountStatus
         }
         for r in rows
     ]
