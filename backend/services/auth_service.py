@@ -33,7 +33,7 @@ def login(username, password):
     cursor.execute(
     "EXEC UserLogin ?, ?",
     (username, password)
-)
+    )
 
     if cursor.description is None:
         return {
@@ -42,6 +42,8 @@ def login(username, password):
         }
 
     user = cursor.fetchone()
+
+    print("LOGIN RESULT:", user)
 
     conn.close()
 

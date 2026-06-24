@@ -79,12 +79,12 @@ def transfer(from_acc, to_acc, amount):
         # Check sender
         valid, msg = is_account_active(cursor, from_acc)
         if not valid:
-            return {"status": "error", "message": msg}
+            return {"status": "error", "message": f"Sender {msg}"}
 
         # Check receiver
         valid, msg = is_account_active(cursor, to_acc)
         if not valid:
-            return {"status": "error", "message": msg}
+            return {"status": "error", "message": f"Receiver {msg}"}
 
         cursor.execute("EXEC TransferMoney ?, ?, ?", (from_acc, to_acc, amount))
         conn.commit()
@@ -157,9 +157,9 @@ def is_account_active(cursor, account_id):
     result = cursor.fetchone()
 
     if not result:
-        return False, "Account not found"
+        return False, f"Account {account_id} not found"
 
     if result.accountStatus != "ACTIVE":
-        return False, "Account is frozen"
+        return False, f"Account {account_id} is frozen"
 
     return True, None
