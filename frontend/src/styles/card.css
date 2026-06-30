@@ -1,0 +1,52 @@
+.account-card{
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:25px;
+
+    width:350px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+
+    margin-bottom:20px;
+
+}
+
+.account-card h1{
+
+    color:#2563eb;
+
+}
+
+.active{
+
+    color:green;
+
+    font-weight:bold;
+
+}
+
+.frozen{
+
+    color:red;
+
+    font-weight:bold;
+
+}
+
+/*Reusable page styles*/
+.page-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.1);
+    margin-top: 20px;
+}
+
+.page-title {
+    color: #1e3a8a;
+    margin-bottom: 20px;
+}
+/**/

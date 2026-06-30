@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import API from "../services/api";
 
+import "../styles/forms.css";
+
 function FraudAlerts() {
   const [alerts, setAlerts] = useState([]);
 
@@ -18,25 +20,40 @@ function FraudAlerts() {
     };
 
   return (
-    <div>
-      <h1>Fraud Alerts</h1>
+    <div className="page-card">
+    <h2 className="page-title">Fraud Alerts</h2>
 
-      {alerts.map((alert) => (
-        <div
-          key={alert.alert_id}
-          style={{
-            border: "1px solid red",
-            padding: "10px",
-            marginBottom: "10px"
-          }}
-        >
-          <p><strong>Alert ID:</strong> {alert.alert_id}</p>
-          <p><strong>Account ID:</strong> {alert.account_id}</p>
-          <p><strong>Amount:</strong> R {alert.amount}</p>
-          <p><strong>Date:</strong> {alert.date}</p>
-          <p><strong>Status:</strong> {alert.status}</p>
-        </div>
-      ))}
+    {alerts.length === 0 ? (
+      <p>No fraud alerts found.</p>
+      ) : (
+        alerts.map((alert) => (
+          <div className="fraud-card" key={alert.alert_id}>
+
+            <div className="fraud-header">
+              <h3>Alert {alert.alert_id}</h3>
+
+              <span
+                className={
+                  alert.status === "PENDING"
+                    ? "pending"
+                    : alert.status === "RESOLVED"
+                    ? "resolved"
+                    : "closed"
+                }
+              >
+                {alert.status}
+              </span>
+            </div>
+
+            <p><strong>Account:</strong> #{alert.account_id}</p>
+
+            <p><strong>Amount:</strong> R {Number(alert.amount).toFixed(2)}</p>
+
+            <p><strong>Date:</strong> {new Date(alert.date).toLocaleString()}</p>
+
+          </div>
+        ))
+      )}
     </div>
   );
 }

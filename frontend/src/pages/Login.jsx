@@ -2,6 +2,8 @@ import { useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
+import "../styles/forms.css";
+
 function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ function Login() {
 
       if (response.data.status === "success") {
         localStorage.setItem("user", JSON.stringify(response.data));
-        //setMessage("Login Successful");
+        //Redirect to Dashboard
         navigate("/dashboard");
       } else {
         setMessage(response.data.message);
@@ -34,34 +36,46 @@ function Login() {
   };
 
   return (
-    <div>
-      <h1>Banking System Login</h1>
+    <div className="page-container">
 
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+      <div className="form-card">
 
-        <br /><br />
+        <h1>🏦 LAMA Bank</h1>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+          <form onSubmit={handleLogin}>
 
-        <br /><br />
+              <div className="form-group">
+                <label>Username</label>
 
-        <button type="submit">
-          Login
-        </button>
-      </form>
+                <input
+                    type="text"
+                    value={username}
+                    onChange={(e)=>setUsername(e.target.value)}
+                />
+              </div>
 
-      <p>{message}</p>
+              <div className="form-group">
+
+                <label>Password</label>
+
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e)=>setPassword(e.target.value)}
+                />
+
+              </div>
+
+              <button className="primary-btn">
+                Login
+              </button>
+
+          </form>
+
+          {message && <p>{message}</p>}
+
+      </div>
+
     </div>
   );
 }

@@ -2,7 +2,15 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 
-import "./Dashboard.css";
+//import "./Dashboard.css";
+
+import AccountCard from "../components/AccountCard";
+
+import "../styles/dashboard.css";
+import "../styles/sidebar.css";
+import "../styles/navbar.css";
+import "../styles/card.css";
+import "../styles/forms.css";
 
 function Dashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -15,7 +23,15 @@ function Dashboard() {
     loadAccount();
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+  try {
+    await API.post("/logout", {
+      user_id: user.user_id
+    });
+    } catch (error) {
+      console.error(error);
+    }
+
     localStorage.removeItem("user");
     navigate("/", { replace: true });
   };
@@ -55,89 +71,132 @@ function Dashboard() {
     }
   };
 
+  const handleToggleStatus = async (accountId) => {
+
+    try {
+
+        const response = await API.post(
+            "/toggle-account-status",
+            {
+                account_id: accountId
+            }
+        );
+
+        alert(response.data.message);
+
+        loadAccount();
+
+    } catch (error) {
+
+        console.error(error);
+        alert("Failed to update account status");
+
+    }
+
+  };
+
   return (
-    <div className="dashboard">
-      <div className="dashboard-header">
+  <div>
+
+    {/* Welcome */}
+    <div className="dashboard-header">
+      <div>
         <h1>Dashboard</h1>
-        <h3>Welcome {user?.full_name}</h3>
-        <p>Username: {user?.username}</p>
-        <p>Customer ID: {user?.customer_id}</p>
+        <p>Your banking overview</p>
       </div>
 
-      <hr />
+      <button
+        className="logout-btn"
+        onClick={handleLogout}
+      >
+        Logout
+      </button>
+    </div>
 
-      <h2>My Accounts</h2>
+    {/* Statistics */}
+    <div className="stats-grid">
 
-        {
-          accounts.map(
-            (account) => (  
-              <div
-                key={account.account_id}
-                className="account-card"
-              >
-              <h3>Account #{account.account_id}</h3>
+      <div className="stat-card">
+        <h4>Total Accounts</h4>
+        <h2>{accounts.length}</h2>
+      </div>
 
-              <p>Balance: R {account.balance}</p>
-
-              <p>
-                Status:
-                <span
-                  className={
-                    account.status === "ACTIVE"
-                      ? "active"
-                      : "frozen"
-                  }
-                >
-                  {" "}{account.status}
-                </span>
-              </p>
-
-              <button onClick={() => navigate(`/accounts/${account.account_id}`)}>Select Account</button>
-              </div>
+      <div className="stat-card">
+        <h4>Total Balance</h4>
+        <h2>
+          R{" "}
+          {accounts
+            .reduce(
+              (sum, account) =>
+                sum + Number(account.balance),
+              0
             )
-          )
-        }
-
-      <div className="button-group">
-          <button onClick={handleCreateAccount}>
-            Create New Account
-          </button>
-          {message && <p>{message}</p>}
+            .toFixed(2)}
+        </h2>
       </div>
 
-      <hr />
-
-      <h2>Banking Services</h2>
-
-      <button onClick={() => navigate("/deposit")}>
-        Deposit
-      </button>
-
-      <button onClick={() => navigate("/withdraw")}>
-        Withdraw
-      </button>
-
-      <button onClick={() => navigate("/transfer")}>
-        Transfer
-      </button>
-
-      <button onClick={() => navigate("/transactions")}>
-        Transactions
-      </button>
-      <div className="button-group">
-        <button onClick={() => navigate("/fraud-alerts")}>
-          Fraud Alerts
-        </button>
+      <div className="stat-card">
+        <h4>Customer ID</h4>
+        <h2>{user.customer_id}</h2>
       </div>
 
-      <hr />
-      <button onClick={handleLogout} className="logout-btn">
-          Logout
-      </button>
-      
+      <div className="stat-card">
+        <h4>Username</h4>
+        <h2>{user.username}</h2>
+      </div>
+
+      <div className="stat-card">
+        <h4>Last Login</h4>
+
+        <h2>
+          {user.last_login
+            ? new Date(user.last_login).toLocaleString()
+            : "First Login"}
+        </h2>
+      </div>
+
+    </div>
+
+    {/* Accounts */}
+    <h2 className="section-title">
+      My Accounts
+    </h2>
+
+    <div className="accounts-grid">
+
+      {accounts.map(account => (
+
+        <AccountCard
+          key={account.account_id}
+          account={account}
+        />
+
+      ))}
+
     </div>
     
-  );
+
+    {/* Create Account */}
+    <div style={{marginTop:"25px"}}>
+
+      <button
+        className="primary-btn"
+        onClick={handleCreateAccount}
+      >
+        + Create New Account
+      </button>
+
+    </div>
+
+    {/* Message */}
+    {message && (
+      <div className="success-message">
+        {message}
+      </div>
+    )}
+
+  </div>
+);
 }
 
 export default Dashboard;

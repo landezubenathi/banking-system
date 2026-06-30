@@ -48,6 +48,7 @@ import API from '../services/api';
     </div>
   );
 }*/
+import "../styles/forms.css";
 
 function Register() {
   return (

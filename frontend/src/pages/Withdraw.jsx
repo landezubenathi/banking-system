@@ -1,10 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../services/api";
 
+import "../styles/forms.css";
+
 function Withdraw() {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const [accounts, setAccounts] = useState([]);
   const [accountId, setAccountId] = useState("");
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    loadAccounts();
+  }, []);
+
+  const loadAccounts = async () => {
+    try {
+      const response = await API.get(`/accounts/${user.customer_id}`);
+
+      setAccounts(response.data);
+
+      if (response.data.length > 0) {
+        setAccountId(response.data[0].account_id);
+      }
+
+    } catch (error) {
+      console.error(error);
+      setMessage("Failed to load accounts");
+    }
+  };
 
   const handleWithdraw = async (e) => {
     e.preventDefault();
@@ -16,24 +41,37 @@ function Withdraw() {
       });
 
       setMessage(response.data.message);
+      setAmount("");
+
     } catch (error) {
-      setMessage("Withdrawal failed");
       console.error(error);
+      setMessage("Withdrawal failed");
     }
   };
 
   return (
-    <div>
-      <h1>Withdraw Money</h1>
+    <div className="page-card">
 
-      <form onSubmit={handleWithdraw}>
+      <h2 className="page-title">Withdraw Money</h2>
 
-        <input
-          type="number"
-          placeholder="Account ID"
+      <form className="form-group" onSubmit={handleWithdraw}>
+
+        <label>Select Account</label>
+
+        <select
           value={accountId}
           onChange={(e) => setAccountId(e.target.value)}
-        />
+        >
+          {accounts.map((account) => (
+            <option
+              key={account.account_id}
+              value={account.account_id}
+            >
+              Account #{account.account_id} ({account.status}) - R{" "}
+              {Number(account.balance).toFixed(2)}
+            </option>
+          ))}
+        </select>
 
         <br /><br />
 
@@ -42,17 +80,25 @@ function Withdraw() {
           placeholder="Amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
+          required
+          min="1"
+          step="0.01"
         />
 
         <br /><br />
 
-        <button type="submit">
+        <button className="primary-btn" type="submit">
           Withdraw
         </button>
 
       </form>
 
-      {message && <p>{message}</p>}
+      {message && (
+        <p className="success-message">
+          {message}
+        </p>
+      )}
+
     </div>
   );
 }

@@ -163,3 +163,29 @@ def is_account_active(cursor, account_id):
         return False, f"Account {account_id} is frozen"
 
     return True, None
+
+def get_recent_transactions(customer_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "EXEC GetCustomerRecentTransactions ?",
+        (customer_id,)
+    )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    transactions = []
+
+    for row in rows:
+        transactions.append({
+            "transaction_id": row.TransactionId,
+            "account_id": row.AccountId,
+            "type": row.TransactionType,
+            "amount": float(row.Amount),
+            "date": str(row.TransactionDate)
+        })
+
+    return transactions

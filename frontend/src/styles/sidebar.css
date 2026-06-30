@@ -1,0 +1,60 @@
+.sidebar{
+
+    width:240px;
+
+    background:#0f172a;
+
+    color:white;
+
+    padding:25px;
+
+}
+
+.sidebar h2{
+
+    text-align:center;
+
+    margin-bottom:40px;
+
+}
+
+.sidebar button{
+
+    width:100%;
+
+    margin-bottom:15px;
+
+    padding:14px;
+
+    border:none;
+
+    background:#1e293b;
+
+    color:white;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.sidebar button:hover{
+
+    background:#2563eb;
+
+}
+
+/*Logo Style*/
+.logo{
+    text-align:center;
+    margin-bottom:10px;
+}
+
+.menu-title{
+    color:#94a3b8;
+    font-size:13px;
+    margin-bottom:20px;
+    text-transform:uppercase;
+}

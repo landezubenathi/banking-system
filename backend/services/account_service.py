@@ -38,3 +38,34 @@ def get_accounts(customer_id):
         }
         for r in rows
     ]
+
+def toggle_account_status(account_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute(
+            "EXEC ToggleAccountStatus ?",
+            (account_id,)
+        )
+
+        row = cursor.fetchone()
+
+        conn.commit()
+
+        return {
+            "status": "success",
+            "message": f"Account is now {row.Status}"
+        }
+
+    except Exception as e:
+
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+    finally:
+        conn.close()

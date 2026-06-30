@@ -1,0 +1,124 @@
+.profile-container{
+    display:flex;
+    justify-content:center;
+    padding:30px;
+}
+
+.profile-card{
+    width:700px;
+    background:white;
+    border-radius:15px;
+    padding:30px;
+    box-shadow:0 5px 15px rgba(0,0,0,.1);
+}
+
+.profile-avatar{
+    width:90px;
+    height:90px;
+    margin:auto;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:36px;
+    font-weight:bold;
+}
+
+.profile-card h2{
+    text-align:center;
+    color:#1e3a8a;
+    margin-top:15px;
+}
+
+.profile-card p{
+    text-align:center;
+    color:#6b7280;
+}
+
+.profile-info{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:20px;
+    margin-top:25px;
+    margin-bottom:20px;
+}
+
+.profile-info div{
+    background:#f8fafc;
+    padding:15px;
+    border-radius:10px;
+}
+
+.profile-info strong{
+    color:#1e3a8a;
+}
+
+/**/
+.accounts-summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin:20px 0;
+}
+
+.summary-card{
+    background:#f8fafc;
+    border-radius:12px;
+    padding:18px;
+    border-left:5px solid #2563eb;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.summary-card h4{
+    margin-bottom:10px;
+    color:#1e3a8a;
+}
+
+.active-status{
+    color:#16a34a;
+    font-weight:bold;
+}
+
+.frozen-status{
+    color:#dc2626;
+    font-weight:bold;
+}
+
+.activity-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+.activity-table th{
+    background:#2563eb;
+    color:white;
+    padding:12px;
+}
+
+.activity-table td{
+    padding:12px;
+    border-bottom:1px solid #ddd;
+}
+
+.activity-table tr:hover{
+    background:#f1f5f9;
+}
+/**/
+.profile-info input{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    margin-bottom:15px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:15px;
+}
+
+body.dark .profile-info input{
+    background:#374151;
+    color:white;
+    border:1px solid #555;
+}
