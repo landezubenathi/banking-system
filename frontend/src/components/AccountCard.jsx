@@ -1,4 +1,4 @@
-function AccountCard({ account }) {
+function AccountCard({ account, onSelect, onToggleStatus }) {
 
     return (
 
@@ -20,6 +20,18 @@ function AccountCard({ account }) {
                     {" "}{account.status}
                 </span>
             </p>
+
+            
+            <button
+                className="primary-btn"
+                onClick={() =>
+                    handleToggleStatus(account.account_id)
+                }
+            >
+                {account.status === "ACTIVE"
+                    ? "Freeze Account"
+                    : "Unfreeze Account"}
+            </button>
 
         </div>
 
