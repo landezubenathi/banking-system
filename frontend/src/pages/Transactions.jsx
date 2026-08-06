@@ -86,7 +86,7 @@ function Transactions() {
               key={account.account_id}
               value={account.account_id}
             >
-              Account #{account.account_id}
+              Account Number: {account.account_number}
             </option>
           ))}
         </select>

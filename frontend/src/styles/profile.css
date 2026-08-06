@@ -1,15 +1,19 @@
 .profile-container{
-    display:flex;
-    justify-content:center;
-    padding:30px;
+    width:100%;
+    padding:auto;
+    margin:auto;
+    box-sizing:border-box;
 }
 
 .profile-card{
-    width:700px;
+    width:100%;
+    max-width:1200px;
+    margin:0 auto;
     background:white;
     border-radius:15px;
-    padding:30px;
-    box-shadow:0 5px 15px rgba(0,0,0,.1);
+    padding: 15px 10px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    box-shadow:0 5px 1px rgba(0,0,0,.08);
 }
 
 .profile-avatar{

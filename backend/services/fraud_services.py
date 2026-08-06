@@ -1,6 +1,6 @@
 from db import get_connection
 
-def get_fraud_alerts():
+def get_fraud_all_alerts():
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -35,16 +35,16 @@ def get_fraud_alerts(customer_id):
 
     cursor.execute("""
         SELECT
-            FA.AlertId,
+            FA.FraudAlertsId,
             FA.AccountId,
-            FA.Amount,
+            FA.SuspiciousAmount,
             FA.AlertDate,
             FA.Status
         FROM FraudAlerts FA
         INNER JOIN Accounts A
             ON FA.AccountId = A.AccountId
         WHERE A.CustomerId = ?
-        ORDER BY FA.AlertDate DESC;
+        ORDER BY FA.AlertDate DESC
     """, (customer_id,))
 
     alerts = []
@@ -53,10 +53,10 @@ def get_fraud_alerts(customer_id):
 
         alerts.append({
 
-            "alert_id": row.AlertId,
+            "alert_id": row.FraudAlertsId,
             "account_id": row.AccountId,
-            "amount": float(row.Amount),
-            "date": row.AlertDate,
+            "amount": float(row.SuspiciousAmount),
+            "date": str(row.AlertDate),
             "status": row.Status
 
         })

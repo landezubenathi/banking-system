@@ -4,7 +4,7 @@ function AccountCard({ account, onSelect, onToggleStatus }) {
 
         <div className="account-card">
 
-            <h2>Account #{account.account_id}</h2>
+            <h2>Account Number: {account.account_number}</h2>
 
             <h1>R {account.balance}</h1>
 

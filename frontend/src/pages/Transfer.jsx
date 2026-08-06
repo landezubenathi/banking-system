@@ -19,9 +19,7 @@ function Transfer() {
   const loadAccounts = async () => {
     try {
       const response = await API.get(`/accounts/${user.customer_id}`);
-
       setAccounts(response.data);
-
       if (response.data.length > 0) {
         setFromAccount(response.data[0].account_id);
       }
@@ -79,7 +77,7 @@ function Transfer() {
               key={account.account_id}
               value={account.account_id}
             >
-              Account #{account.account_id} ({account.status}) - R{" "}
+              {account.account_number} ({account.status}) - R{" "}
               {Number(account.balance).toFixed(2)}
             </option>
           ))}
@@ -87,11 +85,11 @@ function Transfer() {
 
         <br /><br />
 
-        <label>Recipient Account ID</label>
+        <label>Recipient Account Number</label>
 
         <input
           type="number"
-          placeholder="Enter recipient account ID"
+          placeholder="Enter recipient account number"
           value={toAccount}
           onChange={(e) => setToAccount(e.target.value)}
           required

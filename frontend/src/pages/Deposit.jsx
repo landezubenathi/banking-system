@@ -70,7 +70,7 @@ function Deposit() {
                 key={account.account_id}
                 value={account.account_id}
               >
-                Account #{account.account_id} ({account.status}) - R{" "}{Number(account.balance).toFixed(2)}
+                {account.account_number} ({account.status}) - R{" "}{Number(account.balance).toFixed(2)}
               </option>
             ))}
           </select>

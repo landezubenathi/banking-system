@@ -38,6 +38,7 @@ function Dashboard() {
 
   const [message, setMessage] = useState("");
 
+  /*
   const handleCreateAccount = async () => {
     try {
       const response = await API.post("/create-account", {
@@ -53,7 +54,7 @@ function Dashboard() {
       alert("Failed to create account");
     }
     
-  };
+  };*/
 
   const loadAccount = async () => {
     try {
@@ -141,10 +142,10 @@ function Dashboard() {
       {/* Accounts */}
 
       <div className="stat-card">
-        <h4>My Account No</h4>
+        <h4>Account No</h4>
         <h2>
           {accounts.length > 0
-            ? accounts[0].account_id
+            ? accounts[0].account_number
             : "N/A"}
         </h2>
       </div>
@@ -165,10 +166,6 @@ function Dashboard() {
       </div>
 
     </div>
-
-    {/* Accounts */}    
-
-    {/* Create Account */}
     {/* Message */}
     {message && (
       <div className="success-message">

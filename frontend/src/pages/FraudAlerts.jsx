@@ -5,19 +5,41 @@ import "../styles/forms.css";
 
 function FraudAlerts() {
   const [alerts, setAlerts] = useState([]);
+  const [accounts, setAccounts] = useState([]);
+  const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
     loadAlerts();
+    loadAccounts();
   }, []);
 
   const loadAlerts = async () => {
     try {
-        const response = await API.get("/fraud-alerts");
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        const response = await API.get(
+            `/fraud-alerts/${user.customer_id}`
+        );
       setAlerts(response.data);
         } catch (error) {
         console.error(error);
         }
     };
+
+  const loadAccounts = async () => {
+    try {
+      const response = await API.get(`/accounts/${user.customer_id}`);
+
+      setAccounts(response.data);
+
+      if (response.data.length > 0) {
+        setFromAccount(response.data[0].account_id);
+      }
+    } catch (error) {
+      console.error(error);
+      setMessage("Failed to load accounts");
+    }
+  };
 
   return (
     <div className="page-card">
@@ -45,7 +67,9 @@ function FraudAlerts() {
               </span>
             </div>
 
-            <p><strong>Account:</strong> #{alert.account_id}</p>
+            <p><strong>Account Number:</strong> {accounts.length > 0
+            ? accounts[0].account_number
+            : "N/A"}</p>
 
             <p><strong>Amount:</strong> R {Number(alert.amount).toFixed(2)}</p>
 
