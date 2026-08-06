@@ -5,7 +5,11 @@ auth_bp = Blueprint("auth_bp", __name__)
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    result = register_user(request.json)
+
+    data = request.get_json()
+
+    result = register_user(data)
+
     return jsonify(result)
 
 @auth_bp.route('/login', methods=['POST'])
@@ -22,7 +26,7 @@ def login_route():
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
-    data = request.json
+    data = request.get_json()
 
     result = update_last_login(data["user_id"])
 

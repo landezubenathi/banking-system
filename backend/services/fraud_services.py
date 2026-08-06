@@ -27,3 +27,40 @@ def get_fraud_alerts():
         }
         for row in rows
     ]
+
+def get_fraud_alerts(customer_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT
+            FA.AlertId,
+            FA.AccountId,
+            FA.Amount,
+            FA.AlertDate,
+            FA.Status
+        FROM FraudAlerts FA
+        INNER JOIN Accounts A
+            ON FA.AccountId = A.AccountId
+        WHERE A.CustomerId = ?
+        ORDER BY FA.AlertDate DESC;
+    """, (customer_id,))
+
+    alerts = []
+
+    for row in cursor.fetchall():
+
+        alerts.append({
+
+            "alert_id": row.AlertId,
+            "account_id": row.AccountId,
+            "amount": float(row.Amount),
+            "date": row.AlertDate,
+            "status": row.Status
+
+        })
+
+    conn.close()
+
+    return alerts

@@ -13,8 +13,8 @@ function AccountCard({ account, onSelect, onToggleStatus }) {
                 <span
                     className={
                         account.status === "ACTIVE"
-                            ? "active"
-                            : "frozen"
+                            ? "ACTIVE"
+                            : "FROZEN"
                     }
                 >
                     {" "}{account.status}

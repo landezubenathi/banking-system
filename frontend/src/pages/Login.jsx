@@ -70,6 +70,17 @@ function Login() {
                 Login
               </button>
 
+              <p>
+                Don't have an account?
+                <button
+                type="button"
+              onClick={()=>navigate("/register")}
+                >
+                Register
+                </button>
+
+                </p>
+
           </form>
 
           {message && <p>{message}</p>}

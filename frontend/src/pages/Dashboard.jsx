@@ -33,7 +33,7 @@ function Dashboard() {
     }
 
     localStorage.removeItem("user");
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   };
 
   const [message, setMessage] = useState("");
@@ -115,10 +115,14 @@ function Dashboard() {
 
     {/* Statistics */}
     <div className="stats-grid">
-
+       {/* Accounts */}
       <div className="stat-card">
-        <h4>Total Accounts</h4>
-        <h2>{accounts.length}</h2>
+        <h4>Status</h4>
+        <h2>
+          {accounts.length > 0
+            ? accounts[0].status
+            : "N/A"}
+        </h2>
       </div>
 
       <div className="stat-card">
@@ -134,10 +138,15 @@ function Dashboard() {
             .toFixed(2)}
         </h2>
       </div>
+      {/* Accounts */}
 
       <div className="stat-card">
-        <h4>Customer ID</h4>
-        <h2>{user.customer_id}</h2>
+        <h4>My Account No</h4>
+        <h2>
+          {accounts.length > 0
+            ? accounts[0].account_id
+            : "N/A"}
+        </h2>
       </div>
 
       <div className="stat-card">
@@ -157,37 +166,9 @@ function Dashboard() {
 
     </div>
 
-    {/* Accounts */}
-    <h2 className="section-title">
-      My Accounts
-    </h2>
-
-    <div className="accounts-grid">
-
-      {accounts.map(account => (
-
-        <AccountCard
-          key={account.account_id}
-          account={account}
-        />
-
-      ))}
-
-    </div>
-    
+    {/* Accounts */}    
 
     {/* Create Account */}
-    <div style={{marginTop:"25px"}}>
-
-      <button
-        className="primary-btn"
-        onClick={handleCreateAccount}
-      >
-        + Create New Account
-      </button>
-
-    </div>
-
     {/* Message */}
     {message && (
       <div className="success-message">
