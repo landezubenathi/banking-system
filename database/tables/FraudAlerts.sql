@@ -1,0 +1,8 @@
+CREATE TABLE FraudAlerts(
+FraudAlertsId INT PRIMARY KEY IDENTITY(1, 1),
+AccountId INT NOT NULL,
+SuspiciousAmount DECIMAL(18, 2) DEFAULT 0,
+AlertDate DATETIME DEFAULT GETDATE(),
+Status  VARCHAR(20) CHECK (Status IN ('ACTIVE', 'RESOLVED'))
+FOREIGN KEY(AccountId) REFERENCES Accounts(AccountId)
+);

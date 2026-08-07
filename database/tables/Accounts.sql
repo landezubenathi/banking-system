@@ -1,0 +1,8 @@
+CREATE TABLE Accounts(
+AccountId INT PRIMARY KEY IDENTITY(1, 1),
+CustomerId INT NOT NULL,
+AccountBalance DECIMAL(10, 2) DEFAULT 0,
+AccountStatus VARCHAR(50) CHECK (AccountStatus IN ('ACTIVE', 'FROZEN')) DEFAULT 'ACTIVE',
+DateCreated DATETIME DEFAULT GETDATE(),
+FOREIGN KEY(CustomerID) REFERENCES Customers(CustomerId) 
+);
