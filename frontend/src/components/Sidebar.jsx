@@ -3,6 +3,19 @@ import { useNavigate } from "react-router-dom";
 function Sidebar() {
     const navigate = useNavigate();
 
+    const handleLogout = async () => {
+    try {
+        await API.post("/logout", {
+        user_id: user.user_id
+        });
+        } catch (error) {
+        console.error(error);
+        }
+
+        localStorage.removeItem("user");
+        navigate("/login", { replace: true });
+    };
+
     return (
         <div className="sidebar">
 
@@ -34,6 +47,13 @@ function Sidebar() {
 
             <button onClick={() => navigate("/profile")}>
                 👤 Profile
+            </button>
+
+            <button
+                className="logout-btn"
+                onClick={handleLogout}
+            >
+                Logout
             </button>
 
         </div>

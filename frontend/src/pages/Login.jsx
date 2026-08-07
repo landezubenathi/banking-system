@@ -72,7 +72,7 @@ function Login() {
 
               <p>
                 Don't have an account?
-                <button
+                <button className="register-btn"
                 type="button"
               onClick={()=>navigate("/register")}
                 >
@@ -83,7 +83,11 @@ function Login() {
 
           </form>
 
-          {message && <p>{message}</p>}
+          {message && (
+            <div className="error-message">
+                {message}
+            </div>
+          )}
 
       </div>
 

@@ -105,13 +105,12 @@ function Dashboard() {
         <h1>Dashboard</h1>
         <p>Your banking overview</p>
       </div>
-
-      <button
+      {/*<button
         className="logout-btn"
         onClick={handleLogout}
       >
         Logout
-      </button>
+      </button>*/}
     </div>
 
     {/* Statistics */}

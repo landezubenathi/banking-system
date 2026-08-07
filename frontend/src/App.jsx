@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -11,39 +11,56 @@ import FraudAlerts from "./pages/FraudAlerts";
 import Profile from "./pages/Profile";
 
 import ProtectedRoute from "./components/ProtectedRoute";
-
 import MainLayout from "./components/MainLayout";
 
 function App() {
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
   return (
     <BrowserRouter>
+
       <Routes>
 
+        {/* Default Route */}
+        <Route
+          path="/"
+          element={
+            user
+              ? <Navigate to="/dashboard" replace />
+              : <Navigate to="/login" replace />
+          }
+        />
+
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
+
+        {/* Protected Routes */}
         <Route
           element={
             <ProtectedRoute>
               <MainLayout />
             </ProtectedRoute>
           }
-        > 
+        >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/deposit" element={<Deposit />} />
           <Route path="/withdraw" element={<Withdraw />} />
           <Route path="/transfer" element={<Transfer />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/fraud-alerts" element={<FraudAlerts />} />
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-            }
-          />
+          <Route path="/profile" element={<Profile />} />
         </Route>
 
+        {/* Unknown URL */}
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
+
       </Routes>
+
     </BrowserRouter>
   );
 }

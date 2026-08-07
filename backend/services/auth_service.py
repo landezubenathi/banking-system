@@ -128,9 +128,19 @@ def login(username, password):
         }
 
     except Exception as e:
+
+        error = str(e)
+
+        # Hide SQL Server errors from the user
+        if "Username not found" in error:
+            return {
+                "status": "error",
+                "message": "Incorrect username or password."
+            }
+
         return {
             "status": "error",
-            "message": str(e)
+            "message": "Unable to log in. Please try again later."
         }
 
     finally:

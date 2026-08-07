@@ -55,6 +55,17 @@
     background: #1d4ed8;
 }
 
+.register-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #10b981;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
 .success {
     color: green;
     margin-top: 15px;
@@ -65,4 +76,14 @@
     color: red;
     margin-top: 15px;
     text-align: center;
+}
+.error-message{
+    margin-top:20px;
+    padding:12px;
+    border-radius:8px;
+    background:#fee2e275;
+    color:#b91c1c;
+    border:1px solid #fca5a562;
+    text-align:center;
+    font-weight:600;
 }
