@@ -1,20 +1,49 @@
+import os
 import pyodbc
+from dotenv import load_dotenv # 
 
-'''def get_connection():
-    return pyodbc.connect(
-        "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=ZUBENATHI-PC;"
-        "DATABASE=BankingSystemAndFraudDetectonDB;"
-        "Trusted_Connection=yes;"
-    )
-'''
+load_dotenv()
+
 
 def get_connection():
-    conn = pyodbc.connect(
-        "DRIVER={ODBC Driver 17 for SQL Server};"
-        "SERVER=ZUBENATHI-DESKT\\SQLEXPRESS;"
-        "DATABASE=BankingSystemAndFraudDetectonDB;"
-        "Trusted_Connection=yes;"
+
+    driver = os.getenv(
+        "DB_DRIVER",
+        "ODBC Driver 17 for SQL Server"
     )
 
-    return conn
+    server = os.getenv("DB_SERVER")
+    database = os.getenv("DB_DATABASE")
+
+    trusted_connection = os.getenv(
+        "DB_TRUSTED_CONNECTION",
+        "yes"
+    ).lower()
+
+    # Windows Authentication
+    if trusted_connection == "yes":
+
+        connection_string = (
+            f"DRIVER={{{driver}}};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            "Trusted_Connection=yes;"
+            "TrustServerCertificate=yes;"
+        )
+
+    # SQL Server Authentication
+    else:
+
+        username = os.getenv("DB_USERNAME")
+        password = os.getenv("DB_PASSWORD")
+
+        connection_string = (
+            f"DRIVER={{{driver}}};"
+            f"SERVER={server};"
+            f"DATABASE={database};"
+            f"UID={username};"
+            f"PWD={password};"
+            "TrustServerCertificate=yes;"
+        )
+
+    return pyodbc.connect(connection_string)

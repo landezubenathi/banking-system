@@ -14,6 +14,11 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    if (!username.trim() || !password.trim()) {
+      setMessage("Please enter both your username and password.");
+      return;
+    }
+
     try {
       const response = await API.post("/login", {
         username,
@@ -47,10 +52,18 @@ function Login() {
               <div className="form-group">
                 <label>Username</label>
 
-                <input
+                {/*<input
                     type="text"
-                    value={username}
+                    value={username} 
                     onChange={(e)=>setUsername(e.target.value)}
+                />*/}
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                      setUsername(e.target.value);
+                      setMessage("");
+                  }}
                 />
               </div>
 
@@ -61,7 +74,10 @@ function Login() {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e)=>setPassword(e.target.value)}
+                  onChange={(e)=>{
+                    setPassword(e.target.value);
+                    setMessage("");
+                  }}
                 />
 
               </div>
