@@ -30,37 +30,48 @@ def get_fraud_all_alerts():
 
 def get_fraud_alerts(customer_id):
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    conn = None
 
-    cursor.execute("""
-        SELECT
-            FA.FraudAlertsId,
-            FA.AccountId,
-            FA.SuspiciousAmount,
-            FA.AlertDate,
-            FA.Status
-        FROM FraudAlerts FA
-        INNER JOIN Accounts A
-            ON FA.AccountId = A.AccountId
-        WHERE A.CustomerId = ?
-        ORDER BY FA.AlertDate DESC
-    """, (customer_id,))
+    try:
 
-    alerts = []
+        conn = get_connection()
+        cursor = conn.cursor()
 
-    for row in cursor.fetchall():
+        cursor.execute("""
+            SELECT
+                FA.FraudAlertsId,
+                FA.AccountId,
+                FA.SuspiciousAmount,
+                FA.AlertDate,
+                FA.Status
+            FROM FraudAlerts FA
+            INNER JOIN Accounts A
+                ON FA.AccountId = A.AccountId
+            WHERE A.CustomerId = ?
+            ORDER BY FA.AlertDate DESC
+        """, (customer_id,))
 
-        alerts.append({
+        alerts = []
 
-            "alert_id": row.FraudAlertsId,
-            "account_id": row.AccountId,
-            "amount": float(row.SuspiciousAmount),
-            "date": str(row.AlertDate),
-            "status": row.Status
+        for row in cursor.fetchall():
 
-        })
+            alerts.append({
+                "alert_id": row.FraudAlertsId,
+                "account_id": row.AccountId,
+                "amount": float(row.SuspiciousAmount),
+                "date": str(row.AlertDate),
+                "status": row.Status
+            })
 
-    conn.close()
+        return alerts
 
-    return alerts
+    except Exception as e:
+
+        print("FRAUD ERROR:", e)
+
+        return []
+
+    finally:
+
+        if conn:
+            conn.close()
