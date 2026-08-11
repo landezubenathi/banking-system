@@ -9,29 +9,33 @@ from routes.account_routes import account_bp
 from routes.transaction_routes import transaction_bp
 from routes.fraud_routes import fraud_bp
 
-# Load environment variables
 load_dotenv()
 
 
 app = Flask(__name__)
 
-# Frontend URL
-frontend_url = os.getenv(
-    "FRONTEND_URL",
+
+# ==========================================
+# CORS Configuration
+# ==========================================
+
+cors_origins = os.getenv(
+    "CORS_ORIGINS",
     "http://localhost:5173"
 )
 
-
-# Allow requests from the frontend
 CORS(
     app,
-    origins=[frontend_url]
+    origins=[
+        origin.strip()
+        for origin in cors_origins.split(",")
+    ]
 )
 
 
-# --------------------------------------------------
-# API HOME
-# --------------------------------------------------
+# ==========================================
+# Home / Health Check
+# ==========================================
 
 @app.route("/")
 def home():
@@ -42,9 +46,9 @@ def home():
     })
 
 
-# --------------------------------------------------
-# REGISTER BLUEPRINTS
-# --------------------------------------------------
+# ==========================================
+# Register Blueprints
+# ==========================================
 
 app.register_blueprint(auth_bp)
 app.register_blueprint(account_bp)
@@ -52,13 +56,19 @@ app.register_blueprint(transaction_bp)
 app.register_blueprint(fraud_bp)
 
 
-# --------------------------------------------------
-# RUN APPLICATION
-# --------------------------------------------------
+# ==========================================
+# Run Application
+# ==========================================
 
 if __name__ == "__main__":
+
+    debug_mode = (
+        os.getenv("FLASK_DEBUG", "False").lower()
+        == "true"
+    )
+
     app.run(
         host="0.0.0.0",
         port=int(os.getenv("PORT", 5000)),
-        debug=False
+        debug=debug_mode
     )
