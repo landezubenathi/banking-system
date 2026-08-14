@@ -11,7 +11,6 @@ from routes.fraud_routes import fraud_bp
 
 load_dotenv()
 
-
 app = Flask(__name__)
 
 
