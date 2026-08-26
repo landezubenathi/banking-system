@@ -74,4 +74,5 @@ jobs:
         with:
           app-name: 'lama-banking-api'
           slot-name: 'Production'
+          package: '.'
           
