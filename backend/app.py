@@ -20,7 +20,7 @@ app = Flask(__name__)
 
 cors_origins = os.getenv(
     "CORS_ORIGINS",
-    "http://localhost:5173"
+    "http://localhost:5173","https://lama-banking-api-cda2awb2d3d0f6a5.southafricanorth-01.azurewebsites.net/"
 )
 
 CORS(
