@@ -19,8 +19,7 @@ app = Flask(__name__)
 # ==========================================
 
 cors_origins = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:5173","https://victorious-stone-0ee0f6c10.7.azurestaticapps.net/"
+    "CORS_ORIGINS","https://victorious-stone-0ee0f6c10.7.azurestaticapps.net/"
 )
 
 CORS(
