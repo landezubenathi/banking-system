@@ -22,14 +22,25 @@ cors_origins = os.getenv(
     "CORS_ORIGINS","https://victorious-stone-0ee0f6c10.7.azurestaticapps.net/"
 )
 
-CORS(
+'''CORS(
     app,
     origins=[
         origin.strip()
         for origin in cors_origins.split(",")
     ]
-)
+)'''
 
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": [
+                "https://victorious-stone-0ee0f6c10.7.azurestaticapps.net",
+                "http://localhost:5173"
+            ]
+        }
+    }
+)
 
 # ==========================================
 # Home / Health Check
