@@ -1,6 +1,6 @@
 USE [BankingSystemAndFraudDetectonDB]
 GO
-/****** Object:  StoredProcedure [dbo].[CreateAccount]    Script Date: 2026/08/07 12:54:15 ******/
+/****** Object: StoredProcedure [dbo].[CreateAccount]    Script Date: 2026/08/07 12:54:15 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
