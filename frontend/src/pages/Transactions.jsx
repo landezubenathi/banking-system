@@ -128,6 +128,7 @@ function Transactions() {
           <tr>
             <th>ID</th>
             <th>Type</th>
+            <th>Related Account</th>
             <th>Amount</th>
             <th>Date</th>
           </tr>
@@ -138,7 +139,7 @@ function Transactions() {
           {currentTransactions.length === 0 ? (
 
             <tr>
-              <td colSpan="4" style={{ textAlign: "center" }}>
+              <td colSpan="5" style={{ textAlign: "center" }}>
                 No transactions found.
               </td>
             </tr>
@@ -150,6 +151,7 @@ function Transactions() {
               <tr key={transaction.transaction_id}>
                 <td>{transaction.transaction_id}</td>
                 <td>{transaction.type}</td>
+                <td>{transaction.reference_account_number || "—"}</td>
                 <td>R {Number(transaction.amount).toFixed(2)}</td>
                 <td>{new Date(transaction.date).toLocaleString()}</td>
               </tr>
