@@ -13,8 +13,8 @@ import "../styles/card.css";
 import "../styles/forms.css";
 
 function Dashboard() {
-  const user = JSON.parse(sessionStorage.getItem("user"));
-
+  const user = JSON.parse(localStorage.getItem("user"));
+  
   const navigate = useNavigate();
 
   const [accounts, setAccounts] = useState([]);
@@ -25,13 +25,13 @@ function Dashboard() {
 
   const handleLogout = async () => {
   try {
-    await API.post("/logout");
+    await API.post("/logout", {
+      user_id: user.user_id
+    });
     } catch (error) {
       console.error(error);
     }
 
-    sessionStorage.removeItem("user");
-    sessionStorage.removeItem("lama_token");
     localStorage.removeItem("user");
     navigate("/login", { replace: true });
   };
@@ -53,7 +53,7 @@ function Dashboard() {
       console.error(error);
       alert("Failed to create account");
     }
-
+    
   };*/
 
   const loadAccount = async () => {

@@ -5,7 +5,7 @@ import "../styles/forms.css";
 const ACCOUNT_NUMBER_REGEX = /^[0-9]{7,10}$/;
 
 function Transfer() {
-  const user = JSON.parse(sessionStorage.getItem("user") || "null");
+  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const [accounts, setAccounts] = useState([]);
   const [fromAccount, setFromAccount] = useState("");

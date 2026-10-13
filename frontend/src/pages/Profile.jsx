@@ -6,7 +6,7 @@ import "../styles/profile.css";
 
 function Profile() {
 
-    const user = JSON.parse(sessionStorage.getItem("user"));
+    const user = JSON.parse(localStorage.getItem("user"));
 
     const { darkMode, toggleTheme } = useTheme();
 
