@@ -4,7 +4,7 @@ import API from "../services/api";
 import "../styles/table.css";
 
 function Transactions() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState("");

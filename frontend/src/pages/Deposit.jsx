@@ -5,7 +5,7 @@ import "../styles/forms.css";
 
 function Deposit() {
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   const [accounts, setAccounts] = useState([]);
   const [accountId, setAccountId] = useState("");

@@ -25,10 +25,13 @@ function Login() {
         password,
       });
 
-      console.log(response.data);
 
       if (response.data.status === "success") {
-        localStorage.setItem("user", JSON.stringify(response.data));
+        if (!response.data.token) throw new Error("Login session was not returned.");
+        sessionStorage.setItem("lama_token", response.data.token);
+        const { token, ...user } = response.data;
+        sessionStorage.setItem("user", JSON.stringify(user));
+        localStorage.removeItem("user"); // clear old insecure login state
         //Redirect to Dashboard
         navigate("/dashboard");
       } else {

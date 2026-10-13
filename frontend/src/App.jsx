@@ -15,7 +15,7 @@ import MainLayout from "./components/MainLayout";
 
 function App() {
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   return (
     <BrowserRouter>

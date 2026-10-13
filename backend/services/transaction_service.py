@@ -30,8 +30,8 @@ def deposit(accountId, amount):
         return {"status": "success", "message": "Deposit successful"}
 
     except Exception as e:
-        print("ERROR:", e)
-        return {"status": "error", "message": str(e)}
+        logger.exception("Deposit failed")
+        return {"status": "error", "message": "Deposit could not be completed. Please try again."}
 
     finally:
         if conn:
@@ -62,8 +62,8 @@ def withdraw(accountId, amount):
         return {"status": "success", "message": "Withdrawal successful"}
 
     except Exception as e:
-        print("ERROR:", e)
-        return {"status": "error", "message": str(e)}
+        logger.exception("Withdrawal failed")
+        return {"status": "error", "message": "Withdrawal could not be completed. Please try again."}
 
     finally:
         if conn:

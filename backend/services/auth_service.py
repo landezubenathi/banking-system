@@ -1,5 +1,7 @@
 from db import get_connection
 from werkzeug.security import generate_password_hash, check_password_hash
+import secrets
+from security import token_digest
 
 
 def register_user(data):
@@ -72,7 +74,7 @@ def register_user(data):
 
         return {
             "status": "error",
-            "message": str(e)
+            "message": "Unable to complete this request. Please try again."
         }
 
     finally:
@@ -123,11 +125,18 @@ def login(username, password):
         if login_row is None or login_row.LastLogin is None:
             raise RuntimeError("Could not retrieve updated login time")
 
+        # Token issuance is committed together with LastLogin. Only the hash is stored.
+        token = secrets.token_urlsafe(48)
+        cursor.execute("""
+            INSERT INTO dbo.AuthSessions (UserId, TokenHash, ExpiresAt)
+            VALUES (?, ?, DATEADD(hour, 2, SYSUTCDATETIME()))
+        """, (user.UserId, token_digest(token)))
         conn.commit()
         last_login_utc = login_row.LastLogin.isoformat(timespec="milliseconds") + "Z"
 
         return {
             "status": "success",
+            "token": token,
             "user_id": user.UserId,
             "customer_id": user.CustomerId,
             "username": user.Username,
@@ -212,7 +221,7 @@ def update_profile(customer_id, full_name, email, phone_number):
 
         return {
             "status": "error",
-            "message": str(e)
+            "message": "Unable to complete this request. Please try again."
         }
 
     finally:

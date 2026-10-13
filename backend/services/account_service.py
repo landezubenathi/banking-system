@@ -11,7 +11,7 @@ def create_account(customer_id):
         return {"status": "success", "message": "Account created"}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": "Account operation could not be completed."}
 
     finally:
         conn.close()
@@ -65,7 +65,7 @@ def toggle_account_status(account_id):
 
         return {
             "status": "error",
-            "message": str(e)
+            "message": "Account operation could not be completed."
         }
 
     finally:

@@ -18,29 +18,16 @@ app = Flask(__name__)
 # CORS Configuration
 # ==========================================
 
-cors_origins = os.getenv(
-    "CORS_ORIGINS","https://victorious-stone-0ee0f6c10.7.azurestaticapps.net/"
-)
+cors_origins = [
+    origin.strip().rstrip("/")
+    for origin in os.getenv(
+        "CORS_ORIGINS",
+        "https://victorious-stone-0ee0f6c10.7.azurestaticapps.net,http://localhost:5173"
+    ).split(",")
+    if origin.strip()
+]
+CORS(app, resources={r"/*": {"origins": cors_origins}})
 
-'''CORS(
-    app,
-    origins=[
-        origin.strip()
-        for origin in cors_origins.split(",")
-    ]
-)'''
-
-CORS(
-    app,
-    resources={
-        r"/*": {
-            "origins": [
-                "https://victorious-stone-0ee0f6c10.7.azurestaticapps.net",
-                "http://localhost:5173"
-            ]
-        }
-    }
-)
 
 # ==========================================
 # Home / Health Check
