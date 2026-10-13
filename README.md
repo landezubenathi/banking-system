@@ -152,6 +152,17 @@ banking-system/
 └── README.md
 ```
 
+## Documentation
+
+For more detail, see the dedicated project documents:
+
+| Document | Description |
+| --- | --- |
+| [Architecture](docs/ARCHITECTURE.md) | React–Flask–Azure SQL system design, authentication, transactions and fraud workflow |
+| [Setup & deployment](docs/SETUP.md) | Local installation, database prerequisites, Render and Azure configuration |
+| [Testing & quality assurance](docs/TESTING.md) | Functional test cases, authorization checks, expected results and known limitations |
+| [Screenshot guidelines](docs/screenshots/README.md) | How to add safe, real demo screenshots without publishing private data |
+
 ## Run locally
 
 ### Requirements
