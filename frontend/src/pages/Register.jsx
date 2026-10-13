@@ -1,241 +1,142 @@
-import { useState } from "react";
-import API from "../services/api";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import API from "../services/api";
 import "../styles/forms.css";
 
+function Register() {
+  const navigate = useNavigate();
+  const redirectTimer = useRef(null);
+  const [form, setForm] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
+    username: "",
+    password: "",
+  });
+  const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-function Register(){
+  useEffect(() => () => {
+    if (redirectTimer.current) clearTimeout(redirectTimer.current);
+  }, []);
 
-    const navigate = useNavigate();
+  const handleChange = (event) => {
+    setForm((previous) => ({
+      ...previous,
+      [event.target.name]: event.target.value,
+    }));
+    setMessage("");
+  };
 
+  const handleRegister = async (event) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+    setMessage("");
+    setIsSubmitting(true);
 
-    const [form,setForm] = useState({
+    try {
+      const response = await API.post("/register", {
+        ...form,
+        full_name: form.full_name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        username: form.username.trim(),
+      });
 
-        full_name:"",
-        email:"",
-        phone:"",
-        username:"",
-        password:""
+      if (response.data.status === "success") {
+        setIsError(false);
+        setMessage("Account created successfully! Redirecting you to login...");
+        redirectTimer.current = setTimeout(() => navigate("/login", { replace: true }), 1300);
+      } else {
+        setIsError(true);
+        setMessage(response.data.message || "We couldn't create your account. Please try again.");
+      }
+    } catch (error) {
+      setIsError(true);
+      setMessage(error.response?.data?.message || "Registration couldn't be completed. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    });
+  return (
+    <div className="page-container register-page">
+      <div className="form-card register-card">
+        <button
+          type="button"
+          className="register-back"
+          onClick={() => navigate("/login")}
+        >
+          <span aria-hidden="true">←</span> Back to Login
+        </button>
 
+        <div className="register-heading">
+          <h1>🏦 LAMA Bank</h1>
+          <h2>Create Account</h2>
+          <p>Join our banking simulation. Create a profile to get started.</p>
+        </div>
 
-    const [message,setMessage] = useState("");
+        <form onSubmit={handleRegister} className="register-form">
+          <div className="form-group">
+            <label htmlFor="register-full-name">Full Name</label>
+            <input id="register-full-name" name="full_name" type="text"
+              value={form.full_name} onChange={handleChange}
+              autoComplete="name" placeholder="Enter your full name"
+              maxLength={50} required />
+          </div>
 
+          <div className="form-group">
+            <label htmlFor="register-email">Email Address</label>
+            <input id="register-email" name="email" type="email"
+              value={form.email} onChange={handleChange}
+              autoComplete="email" placeholder="you@example.com" required />
+          </div>
 
+          <div className="form-group">
+            <label htmlFor="register-phone">Phone Number</label>
+            <input id="register-phone" name="phone" type="tel"
+              value={form.phone} onChange={handleChange}
+              autoComplete="tel" placeholder="Enter your phone number"
+              maxLength={10} required />
+          </div>
 
-    const handleChange=(e)=>{
+          <div className="form-group">
+            <label htmlFor="register-username">Username</label>
+            <input id="register-username" name="username" type="text"
+              value={form.username} onChange={handleChange}
+              autoComplete="username" placeholder="Choose a username"
+              maxLength={50} required />
+          </div>
 
-        setForm({
+          <div className="form-group">
+            <label htmlFor="register-password">Password</label>
+            <input id="register-password" name="password" type="password"
+              value={form.password} onChange={handleChange}
+              autoComplete="new-password" placeholder="At least 10 characters"
+              minLength={10} maxLength={128} required />
+            <small className="register-hint">Use at least 10 characters for your password.</small>
+          </div>
 
-            ...form,
-            [e.target.name]: e.target.value
+          <button className="primary-btn" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Creating account..." : "Create Account"}
+          </button>
+        </form>
 
-        });
+        {message && (
+          <p className={isError ? "error-message" : "success-message"}
+             role={isError ? "alert" : "status"}>
+            {message}
+          </p>
+        )}
 
-    };
-
-
-
-    const handleRegister = async(e)=>{
-
-        e.preventDefault();
-
-
-        try{
-
-            const response = await API.post(
-                "/register",
-                form
-            );
-
-
-            console.log(response.data);
-
-
-            if(response.data.status==="success"){
-
-                setMessage(
-                    "Account created successfully"
-                );
-
-
-                setTimeout(()=>{
-
-                    navigate("/login");
-
-                },1500);
-
-
-            }
-            else{
-
-                setMessage(
-                    response.data.message
-                );
-
-            }
-
-
-        }
-        catch(error){
-
-            console.error(error);
-
-            setMessage(
-                "Registration failed"
-            );
-
-        }
-
-    };
-
-
-
-return(
-
-  <div className="page-container">
-
-
-    <div className="form-card">
-
-
-    <h1>🏦 LAMA Bank</h1>
-
-    <h2>Create Account</h2>
-
-
-    <form onSubmit={handleRegister}>
-
-
-    <div className="form-group">
-
-    <label>Full Name</label>
-
-    <input
-
-    type="text"
-
-    name="full_name"
-
-    value={form.full_name}
-
-    onChange={handleChange}
-
-    />
-
+        <div className="register-footer">
+          Already have an account?{" "}
+          <button type="button" onClick={() => navigate("/login")}>Sign in</button>
+        </div>
+      </div>
     </div>
-
-
-
-
-    <div className="form-group">
-
-    <label>Email</label>
-
-    <input
-
-    type="email"
-
-    name="email"
-
-    value={form.email}
-
-    onChange={handleChange}
-
-    />
-
-    </div>
-
-
-
-
-    <div className="form-group">
-
-    <label>Phone Number</label>
-
-    <input
-
-    type="text"
-
-    name="phone"
-
-    value={form.phone}
-
-    onChange={handleChange}
-
-    />
-
-    </div>
-
-
-
-
-    <div className="form-group">
-
-    <label>Username</label>
-
-    <input
-
-    type="text"
-
-    name="username"
-
-    value={form.username}
-
-    onChange={handleChange}
-
-    />
-
-    </div>
-
-
-
-
-    <div className="form-group">
-
-    <label>Password</label>
-
-    <input
-
-    type="password"
-
-    name="password"
-
-    value={form.password}
-
-    onChange={handleChange}
-
-    />
-
-    </div>
-
-
-
-    <button className="primary-btn">
-
-    Create Account
-
-    </button>
-
-
-    </form>
-
-
-
-    {message && <p>{message}</p>}
-
-
-    </div>
-
-
-  </div>
-
-);
-
-
+  );
 }
-
 
 export default Register;

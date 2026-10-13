@@ -87,3 +87,53 @@
     text-align:center;
     font-weight:600;
 }
+
+/* Transaction feedback: don't display failed operations as success. */
+.success-message {
+    margin-top: 20px;
+    padding: 12px;
+    border: 1px solid #86efac;
+    background: #f0fdf4;
+    color: #166534;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+.primary-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+/* Create Account styling – visually consistent with Login (scoped only). */
+.register-page { padding: 24px 16px; box-sizing: border-box; }
+.register-card { width: min(450px, 100%); box-sizing: border-box; }
+.register-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: none; padding: 0;
+    color: #1e40af; font-size: 14px; font-weight: 600;
+    cursor: pointer; margin-bottom: 22px;
+}
+.register-back:hover, .register-back:focus-visible { text-decoration: underline; }
+.register-heading { text-align: center; margin-bottom: 24px; }
+.register-heading h1 { margin: 0 0 12px; color: #1e3a8a; }
+.register-heading h2 { color: #102850; font-size: 23px; margin: 0 0 6px; }
+.register-heading p { color: #64748b; line-height: 1.5; font-size: 14px; margin: 0; }
+.register-form .form-group { margin-bottom: 16px; }
+.register-form input:focus-visible {
+    outline: 2px solid #2563eb; outline-offset: 1px;
+    border-color: #2563eb;
+}
+.register-hint { display: block; font-size: 12px; color: #64748b; margin-top: 6px; }
+.register-footer {
+    margin-top: 22px; padding-top: 18px; border-top: 1px solid #e2e8f0;
+    text-align: center; font-size: 14px; color: #475569;
+}
+.register-footer button {
+    background: none; border: none; cursor: pointer;
+    font: inherit; font-weight: 700; color: #1d4ed8; padding: 0;
+}
+.register-footer button:hover, .register-footer button:focus-visible { text-decoration: underline; }
+@media (max-width: 520px) {
+    .register-card { padding: 26px 20px; }
+    .register-heading h1 { font-size: 28px; }
+}

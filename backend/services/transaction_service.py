@@ -7,75 +7,116 @@ from db import get_connection
 logger = logging.getLogger(__name__)
 ACCOUNT_NUMBER_PATTERN = re.compile(r"^[0-9]{7,10}$")
 
-def deposit(accountId, amount):
-    from utils.validators import validate_amount
+def _business_error(error_code, message):
+    return {"status": "error", "code": error_code, "message": message}
 
-    conn = None  # 👈 ADD THIS
 
-    error = validate_amount(amount)
+def _validate_transaction_amount(amount):
+    """Validate money values without silently rounding down fractional cents."""
+    try:
+        value = Decimal(str(amount))
+    except (InvalidOperation, TypeError, ValueError):
+        return None, _business_error("INVALID_AMOUNT", "Please enter a valid amount.")
+
+    if (not value.is_finite() or value <= 0 or
+            value.as_tuple().exponent < -2 or
+            value > Decimal("9999999999999999.99")):
+        return None, _business_error(
+            "INVALID_AMOUNT", "Enter an amount greater than R0.00 with at most two decimal places."
+        )
+    return value, None
+
+
+def _account_status_error(cursor, account_id, operation):
+    """Only called after authenticated route has checked account ownership.
+
+    Use public AccountNumber, never the internal AccountId, in customer messages.
+    Lock the row within the current transaction to prevent a concurrent freeze.
+    """
+    cursor.execute("""
+        SELECT AccountNumber, AccountStatus
+        FROM dbo.Accounts WITH (UPDLOCK, HOLDLOCK)
+        WHERE AccountId = ?
+    """, (account_id,))
+    row = cursor.fetchone()
+    if row is None:
+        return _business_error("ACCOUNT_NOT_FOUND", "We couldn't find that account. Refresh and try again.")
+
+    number = str(row.AccountNumber) if row.AccountNumber is not None else "the selected account"
+    status = str(row.AccountStatus or "").upper()
+    if status == "FROZEN":
+        return _business_error(
+            "ACCOUNT_FROZEN",
+            f"Account {number} is frozen. You can't {operation} money until the account has been reviewed."
+        )
+    if status != "ACTIVE":
+        return _business_error(
+            "ACCOUNT_UNAVAILABLE",
+            f"Account {number} is currently unavailable for {'deposits' if operation == 'deposit' else 'withdrawals'}. Please contact support."
+        )
+    return None
+
+
+def _run_account_transaction(operation, account_id, amount):
+    amount_value, error = _validate_transaction_amount(amount)
     if error:
-        return {"status": "error", "message": error}
+        return error
 
+    procedure = "dbo.DepositMoney" if operation == "deposit" else "dbo.WithdrawMoney"
+    conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
+        account_error = _account_status_error(cursor, account_id, operation)
+        if account_error:
+            conn.rollback()  # release SQL locks held during status check
+            return account_error
 
-        valid, msg = is_account_active(cursor, accountId)
-        if not valid:
-            return {"status": "error", "message": msg}
-
-        cursor.execute("EXEC DepositMoney ?, ?", (accountId, amount))
+        cursor.execute(f"EXEC {procedure} ?, ?", (account_id, amount_value))
         conn.commit()
-
-        return {"status": "success", "message": "Deposit successful"}
-
-    except Exception as e:
-        print("ERROR:", e)
-        return {"status": "error", "message": str(e)}
-
+        action = "Deposit" if operation == "deposit" else "Withdrawal"
+        return {"status": "success", "message": f"{action} successful."}
+    except Exception as exc:
+        if conn is not None:
+            conn.rollback()
+        logger.exception("%s failed", operation.capitalize())
+        raw = str(exc)
+        # SQL can reject a request if the account changed status during execution.
+        if "Account is frozen." in raw:
+            public_number = "the selected account"
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT AccountNumber FROM dbo.Accounts WHERE AccountId = ?", (account_id,))
+                row = cursor.fetchone()
+                if row and row.AccountNumber is not None:
+                    public_number = str(row.AccountNumber)
+            except Exception:
+                logger.warning("Could not resolve account number for transaction error", exc_info=True)
+            return _business_error("ACCOUNT_FROZEN", f"Account {public_number} is frozen. Transactions are unavailable until it has been reviewed.")
+        if "Insufficient funds." in raw:
+            return _business_error("INSUFFICIENT_FUNDS", "Your account doesn't have enough funds for this withdrawal.")
+        if "Account not found." in raw:
+            return _business_error("ACCOUNT_NOT_FOUND", "We couldn't find that account. Refresh and try again.")
+        return _business_error(
+            "TRANSACTION_FAILED", f"We couldn't complete your {operation} right now. Please try again later."
+        )
     finally:
-        if conn:
+        if conn is not None:
             conn.close()
+
+
+def deposit(accountId, amount):
+    return _run_account_transaction("deposit", accountId, amount)
 
 
 def withdraw(accountId, amount):
-    from utils.validators import validate_amount
-
-    conn = None  # 👈 ADD THIS
-
-    error = validate_amount(amount)
-    if error:
-        return {"status": "error", "message": error}
-
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
-
-        valid, msg = is_account_active(cursor, accountId)
-        if not valid:
-            return {"status": "error", "message": msg}
-
-        cursor.execute("EXEC WithdrawMoney ?, ?", (accountId, amount))
-        conn.commit()
-        #conn.close()
-
-        return {"status": "success", "message": "Withdrawal successful"}
-
-    except Exception as e:
-        print("ERROR:", e)
-        return {"status": "error", "message": str(e)}
-
-    finally:
-        if conn:
-            conn.close()
+    return _run_account_transaction("withdraw", accountId, amount)
 
 
 def transfer(from_account_number, to_account_number, amount):
     """Both account parameters are CUSTOMER-FACING NUMBER STRINGS, not IDs.
 
-    SECURITY: This implementation validates input but DOES NOT authenticate the
-    caller or verify sender ownership. The current repository has no server-side
-    auth layer. See SECURITY_FINDINGS.md before exposing this route publicly.
+    Route-level authorization verifies sender ownership before this is called.
     """
     if (not isinstance(from_account_number, str) or
             not ACCOUNT_NUMBER_PATTERN.fullmatch(from_account_number)):
@@ -125,6 +166,12 @@ def transfer(from_account_number, to_account_number, amount):
         raw_message = str(exc)
         message = next((msg for msg in known_messages if msg in raw_message),
                        "Transfer could not be completed. Please try again.")
+        if message == "Sender account is not active.":
+            message = f"Account {from_account_number} is frozen or inactive. You can't transfer money from it until it has been reviewed."
+        elif message == "Recipient account is not active.":
+            message = "The recipient account is currently unavailable. Please check the details or contact support."
+        elif message == "Insufficient funds.":
+            message = "Your account doesn't have enough funds for this transfer."
         return {"status": "error", "message": message}
     finally:
         if conn:
@@ -173,22 +220,6 @@ def get_transactions(account_id):
 
 
 
-def is_account_active(cursor, account_id):
-    cursor.execute("""
-        SELECT accountStatus
-        FROM Accounts
-        WHERE accountId = ?
-    """, (account_id,))
-
-    result = cursor.fetchone()
-
-    if not result:
-        return False, f"Account {account_id} not found"
-
-    if result.accountStatus != "ACTIVE":
-        return False, f"Account {account_id} is frozen"
-
-    return True, None
 
 def get_recent_transactions(customer_id):
     conn = get_connection()
