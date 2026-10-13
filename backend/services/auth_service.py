@@ -81,16 +81,17 @@ def register_user(data):
 
 
 def login(username, password):
+    """Authenticate a user and record the UTC time of a SUCCESSFUL login.
 
+    LastLogin is deliberately not changed for incorrect credentials.
+    The returned timestamp is an ISO-8601 UTC value so browsers parse it
+    correctly and display it in the user's local timezone.
+    """
     conn = get_connection()
     cursor = conn.cursor()
 
     try:
-
-        cursor.execute(
-            "EXEC UserLogin ?",
-            (username,)
-        )
+        cursor.execute("EXEC UserLogin ?", (username,))
 
         if cursor.description is None:
             return {
@@ -99,19 +100,31 @@ def login(username, password):
             }
 
         user = cursor.fetchone()
-
-        if user is None:
+        if user is None or not check_password_hash(user.PasswordHash, password):
             return {
                 "status": "error",
                 "message": "Invalid username or password"
             }
 
-        # Verify the entered password against the stored hash
-        if not check_password_hash(user.PasswordHash, password):
-            return {
-                "status": "error",
-                "message": "Invalid username or password"
-            }
+        # Store LAST SUCCESSFUL LOGIN, not logout time.
+        # SQL Server's LastLogin column is DATETIME; GETUTCDATE() is UTC.
+        cursor.execute("""
+            UPDATE dbo.Users
+            SET LastLogin = GETUTCDATE()
+            WHERE UserId = ?
+        """, (user.UserId,))
+
+        cursor.execute("""
+            SELECT LastLogin
+            FROM dbo.Users
+            WHERE UserId = ?
+        """, (user.UserId,))
+        login_row = cursor.fetchone()
+        if login_row is None or login_row.LastLogin is None:
+            raise RuntimeError("Could not retrieve updated login time")
+
+        conn.commit()
+        last_login_utc = login_row.LastLogin.isoformat(timespec="milliseconds") + "Z"
 
         return {
             "status": "success",
@@ -121,52 +134,21 @@ def login(username, password):
             "full_name": user.FullName,
             "email": user.Email,
             "phone_number": user.PhoneNumber,
-            "last_login": str(user.LastLogin) if user.LastLogin else None
+            "last_login": last_login_utc
         }
 
     except Exception as e:
-
-        error = str(e)
-
-        # Hide SQL Server errors from the user
-        if "Username not found" in error:
+        conn.rollback()
+        if "Username not found" in str(e):
             return {
                 "status": "error",
                 "message": "Incorrect username or password."
             }
-
+        # Do not return SQL Server details to the browser.
         return {
             "status": "error",
             "message": "Unable to log in. Please try again later."
         }
-
-    finally:
-        conn.close()
-
-def update_last_login(user_id):
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("""
-            UPDATE Users
-            SET LastLogin = GETDATE()
-            WHERE UserId = ?
-        """, (user_id,))
-
-        conn.commit()
-
-        return {
-            "status": "success",
-            "message": "Last login updated successfully"
-        }
-
-    except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
-
     finally:
         conn.close()
 

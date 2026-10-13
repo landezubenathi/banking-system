@@ -3,15 +3,9 @@ import { useNavigate } from "react-router-dom";
 function Sidebar() {
     const navigate = useNavigate();
 
-    const handleLogout = async () => {
-    try {
-        await API.post("/logout", {
-        user_id: user.user_id
-        });
-        } catch (error) {
-        console.error(error);
-        }
-
+    const handleLogout = () => {
+        // Clear the demo application's locally stored login state.
+        // The database's LastLogin timestamp is written on successful login.
         localStorage.removeItem("user");
         navigate("/login", { replace: true });
     };

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from services.auth_service import get_profile, register_user, login, update_last_login, update_profile
+from services.auth_service import get_profile, register_user, login, update_profile
 
 auth_bp = Blueprint("auth_bp", __name__)
 
@@ -26,11 +26,11 @@ def login_route():
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
-    data = request.get_json()
+    # LastLogin is recorded at successful login, NOT on logout.
+    # This endpoint is retained for compatibility with existing clients.
+    # This demo does not have server-side session/token revocation yet.
+    return jsonify({"status": "success", "message": "Logged out"})
 
-    result = update_last_login(data["user_id"])
-
-    return jsonify(result)
 
 @auth_bp.route("/profile/<int:customer_id>", methods=["GET"])
 def profile(customer_id):
