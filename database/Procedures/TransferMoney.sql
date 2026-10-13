@@ -1,117 +1,106 @@
-USE [BankingSystemAndFraudDetectonDB]
+USE [BankingSystemAndFraudDetectonDB];
 GO
-/****** Object:  StoredProcedure [dbo].[TransferMoney]    Script Date: 2026/08/07 12:58:22 ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-  
-ALTER PROCEDURE [dbo].[TransferMoney]
-   @FromAccount INT,
-   @ToAccount INT,
-   @Amount DECIMAL(18, 2)
+
+/*
+  UPDATE: Customer-facing transfers now accept account numbers, not AccountIds.
+
+  Accounts.AccountNumber = VARCHAR(10), so currently allow 7-10 digits.
+  Transactions.AccountId and ReferenceAccountId remain INT internal keys.
+  Fraud trigger remains unchanged because it operates on Transactions.AccountId.
+
+  IMPORTANT: The procedure itself cannot determine which web customer is logged in.
+  The Flask API MUST authorize the sender account against a verified server-side
+  identity before calling this procedure. The repository ZIP does not implement
+  that authorization yet; do not expose this as a public banking service.
+*/
+CREATE OR ALTER PROCEDURE dbo.TransferMoney
+    @FromAccount VARCHAR(50),  -- AccountNumber, NOT AccountId
+    @ToAccount   VARCHAR(50),  -- AccountNumber, NOT AccountId
+    @Amount DECIMAL(18, 2)
 AS
-BEGIN 
-  BEGIN TRY
-     BEGIN TRANSACTION;
-     
-     --check if amount > 0
-     IF @Amount <= 0
-     BEGIN
-     RAISERROR('Amount must be greater than zero.',16,1);
-     ROLLBACK;
-     RETURN;
-     END
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
-     -- check if sender's account exists
-     IF NOT EXISTS(SELECT 1
-                   FROM Accounts
-                   WHERE AccountId = @FromAccount)
-     BEGIN
-        RAISERROR('Account not found.',16,1);
-        ROLLBACK;
-        RETURN;
-    END
-    -- check if sender's account is active
-    IF EXISTS
-    (
-        SELECT 1
-        FROM Accounts
-        WHERE AccountId =  @FromAccount 
-        AND AccountStatus = 'FROZEN'
-    )
-    BEGIN
-        RAISERROR('Account is frozen.',16,1);
-        ROLLBACK;
-        RETURN;
-    END
+    -- Use wider input parameters so that overly long account numbers are rejected
+    -- instead of being silently truncated to the Accounts column size.
+    IF @FromAccount IS NULL OR LEN(@FromAccount) NOT BETWEEN 7 AND 10
+       OR @FromAccount LIKE '%[^0-9]%'
+        THROW 51001, 'Sender account number must be 7 to 10 digits.', 1;
 
-     -- check if receiver's account exists
-     IF NOT EXISTS(SELECT 1
-                   FROM Accounts
-                   WHERE AccountId = @ToAccount)
-     BEGIN
-        RAISERROR('Account not found.',16,1);
-        ROLLBACK;
-        RETURN;
-    END
-    -- check if receiver's account is active
-    IF EXISTS
-    (
-        SELECT 1
-        FROM Accounts
-        WHERE AccountId =  @ToAccount
-        AND AccountStatus = 'FROZEN'
-    )
-    BEGIN
-        RAISERROR('Account is frozen.',16,1);
-        ROLLBACK;
-        RETURN;
-    END
-
-    DECLARE @Balance DECIMAL(18, 2);
-
-    SELECT @Balance = AccountBalance
-    FROM Accounts
-    WHERE AccountId = @FromAccount;
+    IF @ToAccount IS NULL OR LEN(@ToAccount) NOT BETWEEN 7 AND 10
+       OR @ToAccount LIKE '%[^0-9]%'
+        THROW 51002, 'Recipient account number must be 7 to 10 digits.', 1;
 
     IF @FromAccount = @ToAccount
-    BEGIN
-    RAISERROR('Cannot transfer to the same account.',16,1);
-    ROLLBACK;
-    RETURN;
-    END
+        THROW 51003, 'Cannot transfer to the same account.', 1;
 
+    IF @Amount IS NULL OR @Amount <= 0
+        THROW 51004, 'Amount must be greater than zero.', 1;
 
-    IF @Balance < @Amount
-    BEGIN
-    RAISERROR('Insufficient funds.',16,1);
-    ROLLBACK;
-    RETURN;
-    END
-       
-    UPDATE Accounts
-    SET AccountBalance = AccountBalance - @Amount
-    WHERE AccountId = @FromAccount;
+    DECLARE @FromAccountId INT;
+    DECLARE @ToAccountId INT;
+    DECLARE @FromStatus VARCHAR(50);
+    DECLARE @ToStatus VARCHAR(50);
+    DECLARE @FromBalance DECIMAL(18, 2);
 
-    UPDATE Accounts
-    SET AccountBalance = AccountBalance + @Amount
-    WHERE AccountId = @ToAccount;
+    BEGIN TRY
+        BEGIN TRANSACTION;
 
-    INSERT INTO Transactions(AccountId, ReferenceAccountId, TransactionType, Amount)
-    VALUES(@FromAccount, @ToAccount, 'Transfer', @Amount);
-   
-    INSERT INTO Transactions(AccountId, ReferenceAccountId, TransactionType, Amount)
-    VALUES(@ToAccount, @FromAccount, 'Transfer', @Amount);
+        SELECT @FromAccountId = AccountId,
+               @FromStatus = AccountStatus,
+               @FromBalance = AccountBalance
+        FROM dbo.Accounts WITH (UPDLOCK, HOLDLOCK)
+        WHERE AccountNumber = @FromAccount;
 
-    COMMIT;
-    PRINT 'Tranfer Successful';
+        IF @FromAccountId IS NULL
+            THROW 51005, 'Sender account number not found.', 1;
 
+        SELECT @ToAccountId = AccountId,
+               @ToStatus = AccountStatus
+        FROM dbo.Accounts WITH (UPDLOCK, HOLDLOCK)
+        WHERE AccountNumber = @ToAccount;
+
+        IF @ToAccountId IS NULL
+            THROW 51006, 'Recipient account number not found.', 1;
+
+        IF @FromStatus IS NULL OR @FromStatus <> 'ACTIVE'
+            THROW 51007, 'Sender account is not active.', 1;
+
+        IF @ToStatus IS NULL OR @ToStatus <> 'ACTIVE'
+            THROW 51008, 'Recipient account is not active.', 1;
+
+        IF COALESCE(@FromBalance, 0) < @Amount
+            THROW 51009, 'Insufficient funds.', 1;
+
+        UPDATE dbo.Accounts
+        SET AccountBalance = AccountBalance - @Amount
+        WHERE AccountId = @FromAccountId
+          AND AccountStatus = 'ACTIVE'
+          AND AccountBalance >= @Amount;
+
+        IF @@ROWCOUNT <> 1
+            THROW 51010, 'Sender account changed; transfer cancelled.', 1;
+
+        UPDATE dbo.Accounts
+        SET AccountBalance = AccountBalance + @Amount
+        WHERE AccountId = @ToAccountId AND AccountStatus = 'ACTIVE';
+
+        IF @@ROWCOUNT <> 1
+            THROW 51011, 'Recipient account changed; transfer cancelled.', 1;
+
+        -- Internal ID-based relationship retained for historical data and triggers.
+        INSERT INTO dbo.Transactions
+            (AccountId, ReferenceAccountId, TransactionType, Amount)
+        VALUES
+            (@FromAccountId, @ToAccountId, 'Transfer', @Amount),
+            (@ToAccountId, @FromAccountId, 'Transfer', @Amount);
+
+        COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK;
-
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH
-END
+END;
+GO
