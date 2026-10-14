@@ -5,7 +5,6 @@ import "../styles/forms.css";
 const ACCOUNT_NUMBER_REGEX = /^[0-9]{7,10}$/;
 
 function Transfer() {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
 
   const [accounts, setAccounts] = useState([]);
   const [fromAccount, setFromAccount] = useState("");
@@ -14,30 +13,62 @@ function Transfer() {
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
 
   useEffect(() => {
     loadAccounts();
   }, []);
 
+  // Never trust cached customer_id or read it once during the first render.
+  // Resolve the identity via the SQL-session-protected backend /me endpoint.
   const loadAccounts = async () => {
-    if (!user?.customer_id) {
-      setIsError(true);
-      setMessage("Please log in again.");
-      return;
-    }
+    setLoadingAccounts(true);
     try {
-      const response = await API.get(`/accounts/${user.customer_id}`);
-      const data = Array.isArray(response.data) ? response.data : [];
+      if (!sessionStorage.getItem("lama_token")) {
+        throw new Error("Your login session was not saved. Please sign out and sign in again.");
+      }
+
+      const identity = await API.get("/me");
+      const customerId = Number(identity.data?.customer_id);
+      if (!Number.isSafeInteger(customerId) || customerId <= 0) {
+        throw new Error("Your customer profile could not be verified. Please sign in again.");
+      }
+
+      const response = await API.get(`/accounts/${customerId}`);
+      if (!Array.isArray(response.data)) {
+        throw new Error("The server did not return a valid account list.");
+      }
+      const data = response.data;
       setAccounts(data);
       setFromAccount((previous) =>
-        data.some((account) => account.account_number === previous)
+        data.some((account) => String(account.account_number) === String(previous))
           ? previous
           : String(data[0]?.account_number ?? "")
       );
+      if (!data.length) {
+        setIsError(true);
+        setMessage("No bank accounts were found for this profile.");
+      } else {
+        setIsError(false);
+        setMessage((previous) => previous.startsWith("We couldn't load") || previous.startsWith("Your login") || previous.startsWith("No bank") ? "" : previous);
+      }
     } catch (error) {
-      console.error(error);
+      console.error("Account loading failed:", error.response?.status || error.message);
+      setAccounts([]);
+      setFromAccount("");
       setIsError(true);
-      setMessage("Failed to load your accounts.");
+      const status = error.response?.status;
+      const path = String(error.config?.url || "");
+      const reason = status === 404 && path === "/me"
+        ? "The secure /me endpoint is missing on Render. Deploy the previous auth_routes.py update."
+        : status === 403
+          ? "Your session cannot access these accounts. Please sign out and sign in again."
+          : status === 503
+            ? "Account verification is temporarily unavailable. Please retry shortly."
+            : error.response?.data?.message || error.message || "We couldn't load your accounts. Please retry.";
+      setMessage(reason);
+    } finally {
+      setLoadingAccounts(false);
     }
   };
 
@@ -147,11 +178,15 @@ function Transfer() {
         <br /><br />
 
         <button className="primary-btn" type="submit"
-          disabled={submitting || !accounts.length}>
+          disabled={submitting || loadingAccounts || !accounts.length}>
           {submitting ? "Transferring..." : "Transfer Money"}
         </button>
       </form>
 
+      {loadingAccounts && <p role="status">Loading your accounts securely...</p>}
+      {!loadingAccounts && accounts.length === 0 && (
+        <button type="button" onClick={loadAccounts} className="primary-btn">Retry loading accounts</button>
+      )}
       {message && (
         <p className={isError ? "error-message" : "success-message"} role="status">
           {message}
