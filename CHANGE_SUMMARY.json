@@ -1,0 +1,44 @@
+{
+  "source_zip": "banking-system-main(1).zip",
+  "issue": "Session token stored in sessionStorage but protected-route checks looked for localStorage user",
+  "changed_files": [
+    "backend/routes/account_routes.py",
+    "backend/routes/fraud_routes.py",
+    "backend/routes/transaction_routes.py",
+    "frontend/src/App.jsx",
+    "frontend/src/components/MainLayout.jsx",
+    "frontend/src/components/ProtectedRoute.jsx",
+    "frontend/src/components/Sidebar.jsx",
+    "frontend/src/pages/Dashboard.jsx",
+    "frontend/src/pages/Deposit.jsx",
+    "frontend/src/pages/FraudAlerts.jsx",
+    "frontend/src/pages/Profile.jsx",
+    "frontend/src/pages/Transactions.jsx",
+    "frontend/src/pages/Transfer.jsx",
+    "frontend/src/pages/Withdraw.jsx"
+  ],
+  "backend_files": [
+    "backend/routes/account_routes.py",
+    "backend/routes/fraud_routes.py",
+    "backend/routes/transaction_routes.py"
+  ],
+  "frontend_files": [
+    "frontend/src/App.jsx",
+    "frontend/src/components/MainLayout.jsx",
+    "frontend/src/components/ProtectedRoute.jsx",
+    "frontend/src/components/Sidebar.jsx",
+    "frontend/src/pages/Dashboard.jsx",
+    "frontend/src/pages/Deposit.jsx",
+    "frontend/src/pages/FraudAlerts.jsx",
+    "frontend/src/pages/Profile.jsx",
+    "frontend/src/pages/Transactions.jsx",
+    "frontend/src/pages/Transfer.jsx",
+    "frontend/src/pages/Withdraw.jsx"
+  ],
+  "tests": {
+    "jsx_parser": 20,
+    "python_routes_decorated": 9,
+    "mocked_route_checks": 13
+  },
+  "live_verified": false
+}

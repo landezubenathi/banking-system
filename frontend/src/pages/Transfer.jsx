@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import API from "../services/api";
 import "../styles/forms.css";
 
 const ACCOUNT_NUMBER_REGEX = /^[0-9]{7,10}$/;
 
 function Transfer() {
+  const { user } = useOutletContext();
 
   const [accounts, setAccounts] = useState([]);
   const [fromAccount, setFromAccount] = useState("");
@@ -24,12 +26,9 @@ function Transfer() {
   const loadAccounts = async () => {
     setLoadingAccounts(true);
     try {
-      if (!sessionStorage.getItem("lama_token")) {
-        throw new Error("Your login session was not saved. Please sign out and sign in again.");
-      }
-
-      const identity = await API.get("/me");
-      const customerId = Number(identity.data?.customer_id);
+      // MainLayout already verified this identity with Flask /me.
+      // Do not call /me again or rely on a legacy localStorage user.
+      const customerId = Number(user?.customer_id);
       if (!Number.isSafeInteger(customerId) || customerId <= 0) {
         throw new Error("Your customer profile could not be verified. Please sign in again.");
       }

@@ -15,7 +15,7 @@ import MainLayout from "./components/MainLayout";
 
 function App() {
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const hasSession = Boolean(sessionStorage.getItem("lama_token"));
 
   return (
     <BrowserRouter>
@@ -26,7 +26,7 @@ function App() {
         <Route
           path="/"
           element={
-            user
+            hasSession
               ? <Navigate to="/dashboard" replace />
               : <Navigate to="/login" replace />
           }

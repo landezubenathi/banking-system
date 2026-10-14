@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import API from "../services/api";
 
 import "../styles/table.css";
 
 function Transactions() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useOutletContext();
 
   const [accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState("");

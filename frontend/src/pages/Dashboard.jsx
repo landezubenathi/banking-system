@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import API from "../services/api";
-import { useNavigate } from "react-router-dom";
 
 //import "./Dashboard.css";
 
@@ -13,28 +13,14 @@ import "../styles/card.css";
 import "../styles/forms.css";
 
 function Dashboard() {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { user } = useOutletContext();
   
-  const navigate = useNavigate();
 
   const [accounts, setAccounts] = useState([]);
 
   useEffect(() => {
     loadAccount();
   }, []);
-
-  const handleLogout = async () => {
-  try {
-    await API.post("/logout", {
-      user_id: user.user_id
-    });
-    } catch (error) {
-      console.error(error);
-    }
-
-    localStorage.removeItem("user");
-    navigate("/login", { replace: true });
-  };
 
   const [message, setMessage] = useState("");
 
@@ -70,30 +56,6 @@ function Dashboard() {
     } catch (error) {
       console.error(error);
     }
-  };
-
-  const handleToggleStatus = async (accountId) => {
-
-    try {
-
-        const response = await API.post(
-            "/toggle-account-status",
-            {
-                account_id: accountId
-            }
-        );
-
-        alert(response.data.message);
-
-        loadAccount();
-
-    } catch (error) {
-
-        console.error(error);
-        alert("Failed to update account status");
-
-    }
-
   };
 
   return (

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 import { refreshSessionUser } from "../services/session";
 
 function MainLayout() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -42,7 +43,13 @@ function MainLayout() {
                 onClick={() => setRetry((value) => value + 1)}>
                 Retry connection
               </button>
-              <p>If your session has expired, sign in again.</p>
+              <button type="button" className="primary-btn" onClick={() => {
+                sessionStorage.removeItem("lama_token");
+                sessionStorage.removeItem("user");
+                navigate("/login", { replace: true });
+              }}>
+                Back to Login
+              </button>
             </>
           ) : <p>Checking your secure session...</p>}
         </div>
@@ -55,7 +62,7 @@ function MainLayout() {
       <Sidebar />
       <div className="main-content">
         <Navbar user={user} />
-        <Outlet />
+        <Outlet context={{ user }} />
       </div>
     </div>
   );
