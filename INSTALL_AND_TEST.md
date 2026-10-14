@@ -1,37 +1,37 @@
-# LAMA Bank – Friendly Account Numbers and Registration Polish
+# LAMA Bank — Targeted 401/session-race repair
 
-## Modified files
+## What was confirmed
+- POST /login returns HTTP 200 with a `token` field.
+- GET /me returns 401 in some attempts.
+- `sessionStorage.lama_token` was missing **after** those failed requests.
+- The previous Axios response interceptor removed `lama_token` for every protected 401, including a delayed failure from an older request.
 
-- `backend/services/transaction_service.py`: Deposit/withdraw business errors use the **customer-facing AccountNumber**, including a fallback if the SQL procedure raises a frozen-status error after the initial check.
-- `frontend/src/pages/Deposit.jsx`: Displays full account number, warns on frozen accounts, prevents submissions for unavailable accounts, and shows server errors.
-- `frontend/src/pages/Withdraw.jsx`: Same account-number and frozen-account improvements.
-- `frontend/src/pages/Register.jsx`: A refreshed create-account page with a **Back to Login** control, Login-matched visual style, accessible field labels, required field checks and helpful status messages.
-- `frontend/src/styles/forms.css`: Scoped Create Account styles; preserves existing login styling.
+This explains how a token can disappear after a failed request, but it **does not prove why /me first returned 401**. The response body and exact Authorization scheme on the request remain necessary if the problem persists.
 
-## Installation
+## Changes (frontend only)
+1. `frontend/src/services/api.js`: attaches current Bearer token on protected requests; an older or anonymous 401 cannot clear a newer token. A 401 for the current token still invalidates it. No authentication checks bypassed.
+2. `frontend/src/services/session.js`: explicitly supplies Bearer token to GET /me and ignores profiles returned for a superseded session.
+3. `frontend/src/pages/Login.jsx`: prevents overlapping login attempts; only clears the attempt's token when the backend actually rejects it with 401; distinguishes failures of GET /me from failures of POST /login.
 
-Copy the files to the corresponding paths in your current VS Code project. Review changes before replacing files because these were prepared from the last uploaded repository and subsequent security and transaction patches; any more recent local edits should be merged.
+## Install
+Back up your current project. Copy the three files into their corresponding `frontend/src/` paths, reviewing any newer changes first. Do **not** replace backend, database, Deposit, Withdrawal or Transfer files.
 
-From the repository root:
-
-```bash
-git add backend/services/transaction_service.py frontend/src/pages/Deposit.jsx frontend/src/pages/Withdraw.jsx frontend/src/pages/Register.jsx frontend/src/styles/forms.css
-git commit -m "Show full account numbers and improve registration UI"
+```
+git add frontend/src/services/api.js frontend/src/services/session.js frontend/src/pages/Login.jsx
+git commit -m "Prevent stale 401 responses from clearing active sessions"
 git push origin main
 ```
 
-Wait for BOTH Render and Azure Static Web Apps GitHub Actions to deploy successfully. Hard-refresh your browser.
+Wait for Azure Static Web Apps deployment. Hard refresh, login once, and inspect Network. Expected chain: `POST /login 200` -> `GET /me 200` -> `GET /accounts/<id> 200` when viewing accounts.
 
-**No database migration is required for these changes.**
+## If GET /me still returns 401
+Look at its Response and request header **without sharing secret values**.
+- `Login required.` from this backend's security.py means Flask did **not** see a header beginning with `Bearer ` (even if your browser showed an Authorization field). Compare the network request, endpoint URL, and deployed Render code; inspect proxies or middleware.
+- `Invalid session.` means the Bearer token format failed validation.
+- `Session expired. Please log in.` means no unexpired, unrevoked matching token was found in `dbo.AuthSessions`.
+- `Authentication unavailable.` with HTTP 503 points to Azure SQL connection/query trouble; inspect Render logs.
 
-## Verify
+Don't paste the Authorization header value or any raw token. If the problem persists, send only `/me` status, exact short error message, and whether the Authorization value begins with **Bearer** (Yes/No).
 
-1. With a frozen demo account, open Deposit and Withdraw. The warning should say `Account 1000000009 is frozen` (the real account number, not `Account 9`). Buttons must not permit submission from the frozen account.
-2. With an active demo account, test normal deposit/withdraw functionality.
-3. Visit `/register`. Back to Login and Sign in should go to `/login`. A successful registration should navigate to Login; a server validation error should appear with the backend message.
-4. Test at a mobile browser width.
-5. If the website still says `Account 9 is frozen`, verify both Render and frontend deployed the new commit (you may still be running old files).
-
-## Note
-
-AccountId remains the internal key in the database and API. Displaying the public AccountNumber is a presentation change, not a database schema change. Demo accounts only; registration may be disabled with `REGISTRATION_ENABLED=false` in Render.
+## Security note
+This improves one specific race condition. It does not weaken backend token checks or authorize transactions. A complete security review is still needed before processing anything other than fictional demo data.

@@ -1,26 +1,29 @@
 import API from "./api";
 
-/**
- * Refresh the signed-in customer's profile from the authenticated API.
- * Never trust a customer_id supplied by the browser for authorization.
- */
+/** Verify this browser session with Flask, then cache ONLY server-returned identity. */
 export async function refreshSessionUser() {
   const token = sessionStorage.getItem("lama_token");
   if (!token) throw new Error("Please sign in to continue.");
 
-  const response = await API.get("/me");
+  // Explicit Authorization makes the /me request self-contained and easier
+  // to verify in DevTools. The server still validates the token against SQL.
+  const response = await API.get("/me", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  // Prevent an older request from replacing the user of a newer login.
+  if (sessionStorage.getItem("lama_token") !== token) {
+    throw new Error("Your login changed while verifying the session. Please retry.");
+  }
+
   const profile = response.data;
   const customerId = Number(profile?.customer_id);
   if (!Number.isSafeInteger(customerId) || customerId <= 0) {
     throw new Error("Your customer profile could not be loaded. Please contact support.");
   }
 
-  // Retain the server-returned customer profile. The bearer token remains
-  // separate and is never written to the user object.
   const { token: ignoredToken, ...safeProfile } = profile;
-  sessionStorage.setItem("user", JSON.stringify({
-    ...safeProfile,
-    customer_id: customerId,
-  }));
-  return { ...safeProfile, customer_id: customerId };
+  const verifiedUser = { ...safeProfile, customer_id: customerId };
+  sessionStorage.setItem("user", JSON.stringify(verifiedUser));
+  return verifiedUser;
 }
