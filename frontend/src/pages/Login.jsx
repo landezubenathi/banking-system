@@ -1,5 +1,6 @@
 import { useState } from "react";
 import API from "../services/api";
+import { refreshSessionUser } from "../services/session";
 import { useNavigate } from "react-router-dom";
 
 import "../styles/forms.css";
@@ -25,18 +26,24 @@ function Login() {
         password,
       });
 
-      console.log(response.data);
 
       if (response.data.status === "success") {
-        localStorage.setItem("user", JSON.stringify(response.data));
-        //Redirect to Dashboard
-        navigate("/dashboard");
+        if (!response.data.token) throw new Error("Login session was not returned.");
+        sessionStorage.setItem("lama_token", response.data.token);
+        localStorage.removeItem("user"); // clear old insecure login state
+
+        // Confirm the token works and fetch the correct customer_id from Flask.
+        // A missing/incomplete login response must never open the dashboard.
+        await refreshSessionUser();
+        navigate("/dashboard", { replace: true });
       } else {
-        setMessage(response.data.message);
+        setMessage(response.data.message || "Unable to sign in.");
       }
     } catch (error) {
-      console.error(error);
-      setMessage("Login Failed");
+      console.error("Login failed", error);
+      sessionStorage.removeItem("lama_token");
+      sessionStorage.removeItem("user");
+      setMessage(error.response?.data?.message || error.message || "Login failed. Please try again.");
     }
   };
 

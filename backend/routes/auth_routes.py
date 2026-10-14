@@ -1,55 +1,87 @@
-from flask import Blueprint, request, jsonify
-from services.auth_service import get_profile, register_user, login, update_last_login, update_profile
+import os
+from flask import Blueprint, request, jsonify, g
+from db import get_connection
+from services.auth_service import get_profile, register_user, login, update_profile
+from security import require_auth, customer_is_current, deny_access
 
 auth_bp = Blueprint("auth_bp", __name__)
 
+
 @auth_bp.route('/register', methods=['POST'])
 def register():
-
-    data = request.get_json()
-
+    if os.getenv('REGISTRATION_ENABLED', 'true').lower() != 'true':
+        return jsonify({"status": "error", "message": "Public registration is disabled for this demo."}), 403
+    data = request.get_json(silent=True) or {}
+    required = ('full_name', 'email', 'phone', 'username', 'password')
+    if any(not isinstance(data.get(k), str) or not data[k].strip() for k in required):
+        return jsonify({"status": "error", "message": "Please complete all registration fields."}), 400
+    if len(data['password']) < 10 or len(data['password']) > 128:
+        return jsonify({"status": "error", "message": "Use a password between 10 and 128 characters."}), 400
     result = register_user(data)
+    return jsonify(result), (201 if result.get('status') == 'success' else 400)
 
-    return jsonify(result)
 
 @auth_bp.route('/login', methods=['POST'])
 def login_route():
+    data = request.get_json(silent=True) or {}
+    username, password = data.get('username'), data.get('password')
+    if not isinstance(username, str) or not isinstance(password, str) or not username or not password:
+        return jsonify({"status": "error", "message": "Username and password are required."}), 400
+    result = login(username, password)
+    if result.get('status') == 'success':
+        return jsonify(result)
+    return jsonify(result), (401 if 'password' in result.get('message', '').lower() else 503)
 
-    data = request.get_json()
 
-    return jsonify(
-        login(
-            data['username'],
-            data['password']
-        )
-    )
+@auth_bp.route('/me', methods=['GET'])
+@require_auth
+def current_user():
+    """Resolve identity using the server-verified bearer token, not browser IDs."""
+    profile = get_profile(g.auth_customer_id)
+    if not profile or not profile.get('customer_id'):
+        return jsonify({"status": "error", "message": "User profile not found."}), 404
+    profile['user_id'] = g.auth_user_id
+    # LastLogin is saved in UTC by the login service; return ISO-8601 UTC.
+    last_login = profile.get('last_login')
+    if last_login:
+        profile['last_login'] = str(last_login).replace(' ', 'T') + 'Z'
+    return jsonify(profile)
 
-@auth_bp.route("/logout", methods=["POST"])
+
+@auth_bp.route('/logout', methods=['POST'])
+@require_auth
 def logout():
-    data = request.get_json()
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE dbo.AuthSessions
+            SET RevokedAt = SYSUTCDATETIME()
+            WHERE TokenHash = ? AND RevokedAt IS NULL
+        """, (g.auth_token_hash,))
+        conn.commit()
+    finally:
+        conn.close()
+    return jsonify({"status": "success", "message": "Logged out."})
 
-    result = update_last_login(data["user_id"])
 
-    return jsonify(result)
-
-@auth_bp.route("/profile/<int:customer_id>", methods=["GET"])
+@auth_bp.route('/profile/<int:customer_id>', methods=['GET'])
+@require_auth
 def profile(customer_id):
+    if not customer_is_current(customer_id):
+        return deny_access()
+    return jsonify(get_profile(g.auth_customer_id))
 
-    result = get_profile(customer_id)
 
-    return jsonify(result)
-
-@auth_bp.route("/profile", methods=["PUT"])
+@auth_bp.route('/profile', methods=['PUT'])
+@require_auth
 def update_profile_route():
-
-    data = request.get_json()
-
-    result = update_profile(
-        data["customer_id"],
-        data["full_name"],
-        data["email"],
-        data["phone_number"]
-    )
-
-    return jsonify(result)
-
+    data = request.get_json(silent=True) or {}
+    if not customer_is_current(data.get('customer_id')):
+        return deny_access()
+    required = ('full_name', 'email', 'phone_number')
+    if any(not isinstance(data.get(k), str) or not data[k].strip() for k in required):
+        return jsonify({"status": "error", "message": "Please complete all profile fields."}), 400
+    if len(data['full_name']) > 100 or len(data['email']) > 100 or len(data['phone_number']) > 20:
+        return jsonify({"status": "error", "message": "One or more profile fields are too long."}), 400
+    return jsonify(update_profile(g.auth_customer_id, data['full_name'], data['email'], data['phone_number']))
