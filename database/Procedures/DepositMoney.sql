@@ -5,7 +5,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-  
+
 -- Deposits money into an existing bank account while enforcing basic transaction validation and account-status restrictions.
 ALTER   PROCEDURE [dbo].[DepositMoney]
 @AccountId INT,
