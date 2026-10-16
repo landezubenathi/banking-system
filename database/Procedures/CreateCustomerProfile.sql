@@ -5,7 +5,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-
+  
 -- PURPOSE: Creates a customer profile and its associated user login record.
 ALTER PROCEDURE [dbo].[CreateCustomerProfile]
 @FullName VARCHAR(50),
