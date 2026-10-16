@@ -6,7 +6,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
--- Creates a bank account for an existing customer.
+-- PURPOSE: Creates a bank account for an existing customer.
 ALTER PROCEDURE [dbo].[CreateAccount]
 @CustomerId INT
 AS
