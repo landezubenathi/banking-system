@@ -6,7 +6,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
--- Creates a customer profile and its associated user login record.
+-- PURPOSE: Creates a customer profile and its associated user login record.
 ALTER PROCEDURE [dbo].[CreateCustomerProfile]
 @FullName VARCHAR(50),
 @Email VARCHAR(100),
