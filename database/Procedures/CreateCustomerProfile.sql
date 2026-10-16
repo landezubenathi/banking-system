@@ -14,7 +14,7 @@ ALTER PROCEDURE [dbo].[CreateCustomerProfile]
 @Username VARCHAR(50),
 @PasswordHash VARCHAR(255)
 AS
-BEGIN
+BEGIN 
   BEGIN TRY
     BEGIN TRANSACTION;
 
